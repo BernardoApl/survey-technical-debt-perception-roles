@@ -1,0 +1,18 @@
+# Dados brutos e arquivos com texto digitado pelos respondentes (LGPD)
+data/raw/*
+!data/raw/.gitkeep
+data/manual/reclassificacao_outro.csv
+data/manual/revisao_anonimizacao.csv
+
+# Saídas regeneradas pelo pipeline
+outputs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Exportações do formulário (piloto e coleta) com respostas
+*.xlsx
+/*.csv
