@@ -108,6 +108,20 @@
 /* Dois cartões lado a lado, mesma altura (página de metodologia) */
 .par-cartoes { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: .75rem; }
 @media (max-width: 760px) { .par-cartoes { grid-template-columns: 1fr; } }
+.grade-cartoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.trio-cartoes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+@media (max-width: 900px) { .grade-cartoes, .trio-cartoes { grid-template-columns: 1fr; } }
+.cartao-html .subtitulo { margin: -.4rem 0 .75rem; font-size: .9rem; line-height: 1.45; color: var(--muted); }
+.cartao-html .sigla { display: inline-block; margin-right: .35rem; padding: .05rem .45rem; border-radius: 6px;
+                      background: var(--text); color: #fff; font-size: .8rem; }
+.itens { margin: 0 !important; padding: 0 !important; list-style: none; font-size: .9rem; line-height: 1.45; color: var(--text); }
+.itens li { display: flex; gap: .5rem; margin: 0 0 .45rem !important; padding: 0; }
+.itens .codigo { flex: none; min-width: 1.9rem; font-family: "JetBrains Mono", monospace; font-size: .8rem;
+                 color: var(--muted); padding-top: .1rem; }
+.invertido { flex: none; align-self: flex-start; padding: .05rem .4rem; border-radius: 999px;
+             background: #fff6d6; color: #8a6a00; font-size: .7rem; font-weight: 600; }
+.escala { margin: .6rem 0 0; padding-top: .55rem; border-top: 1px solid var(--border);
+          font-size: .82rem; color: var(--muted); }
 .cartao-html {
   background: var(--surface);
   border: 1px solid var(--border);
