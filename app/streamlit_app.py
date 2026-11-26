@@ -49,6 +49,7 @@ navegacao = st.navigation(
             st.Page(PAGINAS / "abertas.py", title="Respostas abertas"),
         ],
         "Estudo": [
+            st.Page(PAGINAS / "instrumento.py", title="O que foi medido"),
             st.Page(PAGINAS / "metodologia.py", title="Metodologia e desvios"),
         ],
     }
