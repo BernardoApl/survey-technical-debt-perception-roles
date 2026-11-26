@@ -43,17 +43,12 @@ def test_modo_publico_sem_csv_mostra_rqs_reais_agregadas(fotografia, tmp_path, m
     app = AppTest.from_file(APP, default_timeout=90).run()
     assert not app.exception, app.exception
     assert not any("DADOS SINTÉTICOS" in erro.value for erro in app.error)
-    app.radio(key="publico_grupo").set_value("Resultados").run()
-    app.radio(key="publico_pagina").set_value("Questões de pesquisa").run()
+    app.radio[0].set_value("Questões de pesquisa").run()
     assert not app.exception, app.exception
     tabelas = [item.value for item in app.dataframe if "p Holm" in item.value.columns]
-    assert [len(t) for t in tabelas] == [1]
+    assert [len(t) for t in tabelas] == [1, 2, 5, 6]
     app.selectbox(key="publico_item_RQ1").select("C6").run()
     assert not app.exception, app.exception
-    for rq, total in (("RQ2", 2), ("RQ3", 5), ("RQ4", 6)):
-        app.radio(key="etapa_Questões de pesquisa").set_value(rq).run()
-        assert not app.exception, app.exception
-        assert [len(t.value) for t in app.dataframe if "p Holm" in t.value.columns] == [total]
 
 
 @pytest.mark.parametrize("pagina", ["Itens Likert", "Confiabilidade", "Respostas abertas", "Metodologia e desvios"])
@@ -62,7 +57,5 @@ def test_paginas_publicas_sem_erro(fotografia, tmp_path, monkeypatch, pagina):
     monkeypatch.setattr(dados_app, "CSV_BRUTO", tmp_path / "ausente.csv")
     monkeypatch.setattr(publico, "ARQUIVO_PUBLICO", saida)
     app = AppTest.from_file(APP, default_timeout=90).run()
-    grupo = "Estudo" if pagina == "Metodologia e desvios" else "Resultados"
-    app.radio(key="publico_grupo").set_value(grupo).run()
-    app.radio(key="publico_pagina").set_value(pagina).run()
+    app.radio[0].set_value(pagina).run()
     assert not app.exception, app.exception
