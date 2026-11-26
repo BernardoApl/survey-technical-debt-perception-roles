@@ -1,7 +1,7 @@
 """Dashboard do survey de dívida técnica.
 
 Uso: streamlit run app/streamlit_app.py
-Lê data/raw/respostas.csv (ou um CSV sintético, com aviso) a cada execução.
+Usa os resultados agregados publicados ou, localmente, os dados brutos disponíveis.
 """
 
 import sys
@@ -34,6 +34,9 @@ st.html(f"<style>{(Path(__file__).parent / 'estilo.css').read_text(encoding='utf
 # No Cloud o CSV bruto não existe: usar somente a fotografia agregada publicada.
 if not dados_app.CSV_BRUTO.exists() and publico.ARQUIVO_PUBLICO.exists():
     publico.renderizar(publico.ARQUIVO_PUBLICO)
+    st.stop()
+if not dados_app.CSV_BRUTO.exists():
+    st.error("Os resultados agregados não estão disponíveis. Verifique os dados publicados.")
     st.stop()
 
 PAGINAS = Path(__file__).parent / "paginas"

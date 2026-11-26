@@ -101,7 +101,8 @@ def test_sem_csv_real_mostra_aviso(tmp_path, monkeypatch):
     monkeypatch.setattr(publico_app, "ARQUIVO_PUBLICO", tmp_path / "nao_existe.json")
     teste = AppTest.from_file(APP, default_timeout=60)
     teste.run()
-    assert any("SINTÉTICOS" in e.value for e in teste.error)
+    assert any("resultados agregados não estão disponíveis" in e.value for e in teste.error)
+    assert not (tmp_path / "sintetico.csv").exists()
 
 
 def test_trocar_filtro_muda_validas_filtradas(app_sintetico):
