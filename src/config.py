@@ -76,5 +76,55 @@ COLUNAS = [
 CODIGOS = [codigo for codigo, _ in COLUNAS]
 
 # ---------------------------------------------------------------------------
+# Textos do formulário usados por mais de uma etapa (#3 e #4).
+# Copiados do script do Apps Script que gerou o formulário oficial.
+# ---------------------------------------------------------------------------
+SIM, NAO = "Sim", "Não"
+LIKERT = [
+    "Discordo totalmente",
+    "Discordo parcialmente",
+    "Neutro",
+    "Concordo parcialmente",
+    "Concordo totalmente",
+]
+NSA = "Não sei avaliar"  # Likert (blocos C e D)
+NAO_SEI = "Não sei"  # vinhetas "acontece", D5, E7, E8 e C6
+
+PAPEIS_TECNICOS = [
+    "Desenvolvedor(a) (front-end, back-end, mobile ou full stack)",
+    "Arquiteto(a) de software",
+    "Tech lead",
+    "QA / testador(a)",
+    "DevOps / SRE",
+    "Engenheiro(a) de dados",
+]
+PAPEIS_GESTAO = [
+    "Product Owner",
+    "Product Manager",
+    "Analista de negócios / requisitos",
+    "Scrum Master / agilista",
+    "Gerente de projeto",
+    "Coordenador(a) / gerente de engenharia",
+]
+
+# Itens de cada construto (protocolo, Seção 3) e regra de "Não sei" (Seção 5.1, etapa 6).
+ITENS_CONSTRUTO = {
+    "NIV": ["C1", "C2", "C3", "C4"],
+    "IMP": ["D1", "D2", "D3", "D4"],
+    "POS": ["E1", "E3", "E5"],
+    "PRA": ["E2", "E4", "E6"],
+}
+LIMITE_NAO_SEI = 0.5  # construto ausente se a fração de "Não sei" passar disso
+
+# ---------------------------------------------------------------------------
+# Limpeza (protocolo, Seção 5.1; docs/decisoes-analise.md, item 7)
+# ---------------------------------------------------------------------------
+ATN_CORRETO = "Discordo parcialmente"
+ITENS_STRAIGHTLINING = ITENS_CONSTRUTO["NIV"] + ITENS_CONSTRUTO["IMP"]
+JANELA_DUPLICATA = pd.Timedelta(minutes=60)
+CSV_RECLASSIFICACAO = DIR_MANUAL / "reclassificacao_outro.csv"
+GRUPOS_RECLASSIFICACAO = ("técnico", "gestão", "fora")
+
+# ---------------------------------------------------------------------------
 # Recodificação (texto -> número): responsabilidade da issue #3.
 # ---------------------------------------------------------------------------

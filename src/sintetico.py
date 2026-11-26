@@ -20,7 +20,18 @@ from pathlib import Path
 
 import numpy as np
 
-from src.config import CODIGOS, RAIZ, SEED
+from src.config import (
+    CODIGOS,
+    LIKERT,
+    NAO,
+    NAO_SEI,
+    NSA,
+    PAPEIS_GESTAO,
+    PAPEIS_TECNICOS,
+    RAIZ,
+    SEED,
+    SIM,
+)
 
 # Cabeçalhos completos (o começo de cada um bate com src/config.py:COLUNAS).
 CABECALHOS = [
@@ -58,33 +69,6 @@ CABECALHOS = [
     "O que mais dificulta a redução da dívida técnica na sua equipe?",
 ]
 
-SIM, NAO = "Sim", "Não"
-LIKERT = [
-    "Discordo totalmente",
-    "Discordo parcialmente",
-    "Neutro",
-    "Concordo parcialmente",
-    "Concordo totalmente",
-]
-NSA = "Não sei avaliar"
-NAO_SEI = "Não sei"
-
-PAPEIS_TECNICOS = [
-    "Desenvolvedor(a) (front-end, back-end, mobile ou full stack)",
-    "Arquiteto(a) de software",
-    "Tech lead",
-    "QA / testador(a)",
-    "DevOps / SRE",
-    "Engenheiro(a) de dados",
-]
-PAPEIS_GESTAO = [
-    "Product Owner",
-    "Product Manager",
-    "Analista de negócios / requisitos",
-    "Scrum Master / agilista",
-    "Gerente de projeto",
-    "Coordenador(a) / gerente de engenharia",
-]
 PAPEIS_OUTRO = ["Engenheiro de software", "Designer UX", "Analista de TI", "CTO"]
 
 B3 = ["Menos de 1 ano", "1 a 2 anos", "3 a 5 anos", "6 a 10 anos", "Mais de 10 anos"]

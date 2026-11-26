@@ -12,3 +12,7 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+
+# Exportações do formulário (piloto e coleta) com respostas
+*.xlsx
+/*.csv

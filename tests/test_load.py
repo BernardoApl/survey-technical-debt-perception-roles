@@ -107,3 +107,10 @@ def test_formato_do_gerador_bate_com_o_leitor():
 def test_arquivo_inexistente(tmp_path):
     with pytest.raises(FileNotFoundError, match="data/raw/respostas.csv"):
         carregar(tmp_path / "nao_existe.csv")
+
+
+def test_linhas_totalmente_vazias_sao_ignoradas(csv_sintetico):
+    antes = len(carregar(csv_sintetico))
+    with open(csv_sintetico, "a", encoding="utf-8", newline="") as f:
+        csv.writer(f).writerows([[""] * len(CODIGOS)] * 3)
+    assert len(carregar(csv_sintetico)) == antes

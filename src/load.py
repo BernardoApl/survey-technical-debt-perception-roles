@@ -55,8 +55,9 @@ def converter_data(serie: pd.Series) -> pd.Series:
 def carregar(caminho: str | Path = CSV_BRUTO) -> pd.DataFrame:
     """Lê o CSV bruto e devolve colunas `resp_id, timestamp, A1, ..., F2`.
 
-    Não descarta nem recodifica nada: só confere o formato, converte a data,
-    troca vazios por NaN e numera as respostas pela ordem de envio.
+    Não descarta nem recodifica nada: só confere o formato, ignora linhas
+    totalmente vazias, converte a data, troca vazios por NaN e numera as
+    respostas pela ordem de envio.
     """
     caminho = Path(caminho)
     if not caminho.exists():
@@ -69,6 +70,9 @@ def carregar(caminho: str | Path = CSV_BRUTO) -> pd.DataFrame:
     )
     conferir_cabecalho(list(df.columns))
     df.columns = [codigo for codigo, _ in COLUNAS]
+
+    # Linhas totalmente vazias (sobras de planilha) não são respostas.
+    df = df[df.apply(lambda col: col.str.strip() != "").any(axis=1)]
 
     df["timestamp"] = converter_data(df["timestamp"])
     df = df.replace(r"^\s*$", np.nan, regex=True)
