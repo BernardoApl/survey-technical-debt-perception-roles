@@ -13,7 +13,7 @@ from src.config import OPCOES_B3, OPCOES_B5
 from src.load import carregar
 
 APP = str(Path(__file__).resolve().parents[1] / "app" / "streamlit_app.py")
-PAGINAS = ["perfil", "likert", "rqs", "confiabilidade", "abertas", "metodologia"]
+PAGINAS = ["perfil", "likert", "rqs", "confiabilidade", "abertas", "instrumento", "metodologia"]
 
 
 def _dados():
