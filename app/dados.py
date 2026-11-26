@@ -15,7 +15,16 @@ import streamlit as st
 
 from src import sintetico
 from src.clean import ler_reclassificacao, limpar
-from src.config import CSV_BRUTO, PERIODO_PRINCIPAL
+from src.config import (
+    CODIFICADORES,
+    CSV_ANONIMIZACAO,
+    CSV_BRUTO,
+    CSV_CONSENSO,
+    CSV_LIVRO_CODIGOS,
+    CSV_RECLASSIFICACAO,
+    PERIODO_PRINCIPAL,
+    csv_codificacao,
+)
 from src.load import carregar
 from src.recode import recodificar
 from src.score import calcular_escores
@@ -25,6 +34,11 @@ NOME_PERIODO = (
     f"Respostas de {PERIODO_PRINCIPAL[0]:%d/%m} a {PERIODO_PRINCIPAL[1]:%d/%m/%Y} "
     "(coleta prorrogada até 25/11)"
 )
+# Decisões humanas lidas junto com o CSV: editar qualquer uma também atualiza o dashboard.
+ENTRADAS_MANUAIS = [
+    CSV_RECLASSIFICACAO, CSV_ANONIMIZACAO, CSV_CONSENSO, CSV_LIVRO_CODIGOS,
+    *(csv_codificacao(nome) for nome in CODIFICADORES),
+]
 
 
 @dataclass
@@ -50,19 +64,28 @@ def preparar_analise(caminho: Path) -> Analise:
     return Analise(calcular_escores(dados), limpeza.log, limpeza.resumo, inconsistencias)
 
 
+def versao_das_entradas(caminho: Path) -> tuple[int, ...]:
+    """Data de modificação do CSV e de cada arquivo de data/manual/ (0 se não existe).
+
+    Entra na chave do cache: trocar o CSV ou editar uma decisão humana (por
+    exemplo, a reclassificação de "Outro") recalcula tudo na próxima execução.
+    """
+    return tuple(p.stat().st_mtime_ns if p.exists() else 0 for p in (caminho, *ENTRADAS_MANUAIS))
+
+
 @st.cache_data(show_spinner="Lendo e preparando os dados brutos...")
-def _preparar_com_cache(caminho: str, modificado_em: float) -> Analise:
-    # `modificado_em` invalida o cache quando o CSV é trocado.
+def _preparar_com_cache(caminho: str, versao: tuple[int, ...]) -> Analise:
+    # `versao` invalida o cache quando o CSV ou um arquivo manual muda.
     return preparar_analise(Path(caminho))
 
 
 def preparar() -> tuple[Analise, bool]:
     caminho, e_sintetico = fonte_dos_dados()
-    return _preparar_com_cache(str(caminho), caminho.stat().st_mtime), e_sintetico
+    return _preparar_com_cache(str(caminho), versao_das_entradas(caminho)), e_sintetico
 
 
 @st.cache_data(show_spinner="Calculando os desvios do protocolo...")
-def _estudo_com_cache(caminho: str, modificado_em: float) -> dict:
+def _estudo_com_cache(caminho: str, versao: tuple[int, ...]) -> dict:
     from src.pipeline import calcular
 
     resultado = calcular(Path(caminho))
@@ -75,4 +98,4 @@ def _estudo_com_cache(caminho: str, modificado_em: float) -> dict:
 def preparar_estudo() -> dict:
     """Desvios calculados pelo mesmo código do pipeline (src.pipeline.calcular), sem gravar nada."""
     caminho, _ = fonte_dos_dados()
-    return _estudo_com_cache(str(caminho), caminho.stat().st_mtime)
+    return _estudo_com_cache(str(caminho), versao_das_entradas(caminho))

@@ -277,3 +277,14 @@ def test_confiabilidade_ignora_filtros(app_sintetico):
     app_sintetico.switch_page("paginas/confiabilidade.py").run()
     assert not app_sintetico.exception, app_sintetico.exception
     assert app_sintetico.dataframe[0].value["n"].tolist() == antes
+
+
+def test_editar_arquivo_manual_muda_a_chave_do_cache(tmp_path, monkeypatch):
+    """Reclassificar um "Outro" depois de abrir o dashboard precisa recalcular os grupos."""
+    csv = tmp_path / "respostas.csv"
+    csv.write_text("x", encoding="utf-8")
+    reclass = tmp_path / "reclassificacao_outro.csv"
+    monkeypatch.setattr(dados_app, "ENTRADAS_MANUAIS", [reclass])
+    antes = dados_app.versao_das_entradas(csv)
+    reclass.write_text("texto_original,grupo,decidido_por,justificativa\n", encoding="utf-8")
+    assert dados_app.versao_das_entradas(csv) != antes
