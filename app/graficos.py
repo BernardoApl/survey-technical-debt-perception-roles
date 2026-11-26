@@ -44,6 +44,10 @@ COR_TEXTO = "#111113"
 COR_SUAVE = "#6b6b76"
 COR_GRADE = "#e7e7ea"
 
+# Balão ao passar o mouse: fundo branco, texto escuro e borda visível em qualquer gráfico.
+HOVER = {"bgcolor": "#ffffff", "bordercolor": "#A1A1AA",
+         "font": {"family": FONTE, "size": 12, "color": COR_TEXTO}}
+
 pio.templates["survey"] = go.layout.Template(
     layout=go.Layout(
         font={"family": FONTE, "size": 12, "color": COR_SUAVE},
@@ -54,7 +58,7 @@ pio.templates["survey"] = go.layout.Template(
                "zeroline": False, "fixedrange": True, "title": {"font": {"color": COR_SUAVE}}},
         yaxis={"gridcolor": COR_GRADE, "linecolor": COR_GRADE, "tickcolor": COR_GRADE,
                "zeroline": False, "fixedrange": True, "tickfont": {"color": COR_TEXTO}},
-        hoverlabel={"font_family": FONTE, "bgcolor": "#ffffff", "bordercolor": COR_GRADE},
+        hoverlabel=HOVER,
     )
 )
 pio.templates.default = "plotly_white+survey"
@@ -66,7 +70,8 @@ _contador = itertools.count()
 def mostrar(figura: go.Figure) -> None:
     """Exibe a figura no seu próprio cartão branco, com o tema do projeto."""
     # Fundo explícito: o Streamlit preenche com a cor secundária do tema o que a figura não define.
-    figura.update_layout(separators=",.", paper_bgcolor="#ffffff", plot_bgcolor="#ffffff")
+    figura.update_layout(separators=",.", paper_bgcolor="#ffffff", plot_bgcolor="#ffffff",
+                         hoverlabel=HOVER)
     with st.container(key=f"grafico-{next(_contador)}"):
         st.plotly_chart(figura, theme=None, width="stretch", config={"displayModeBar": False})
 
@@ -103,7 +108,7 @@ def funil_descartes(resumo: dict) -> go.Figure:
 # ---------------------------------------------------------------------------
 # Quadradinhos: uma grande caixa em que cada quadrado é uma pessoa
 # ---------------------------------------------------------------------------
-COR_VAGA_GESTAO = "#F2DCCB"  # areia clara: quanto falta para a meta de gestão
+COR_VAGA_GESTAO = "#F2DCCB"  # areia clara: quanto faltou para a meta de gestão
 
 
 def caixa_de_unidades(grupo: pd.Series, meta_gestao: int, colunas: int = 10) -> go.Figure:
@@ -117,7 +122,7 @@ def caixa_de_unidades(grupo: pd.Series, meta_gestao: int, colunas: int = 10) -> 
     blocos = [
         (0, int(contagem.get("técnico", 0)), "Técnico"),
         (1, n_gestao, "Gestão"),
-        (2, max(meta_gestao - n_gestao, 0), f"Falta para a meta de {meta_gestao} de gestão"),
+        (2, max(meta_gestao - n_gestao, 0), f"Faltou para a meta de {meta_gestao} de gestão"),
         (3, int(contagem.get("sem grupo", 0)), "Sem grupo (pendente)"),
     ]
     celulas = [(valor, rotulo) for valor, n, rotulo in blocos for _ in range(n)]

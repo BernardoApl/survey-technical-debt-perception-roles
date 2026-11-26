@@ -70,13 +70,57 @@
   margin: 0;
   padding: 0;
 }
-/* Cartão de cada gráfico: st.container(key="grafico-...") em app/graficos.py */
+/* Cartão de cada gráfico (key="grafico-...") e de blocos de texto (key="cartao-...") */
+[class*="st-key-cartao-"] {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+}
 [class*="st-key-grafico-"] {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: .5rem .75rem;
 }
+
+/* Estado de um desvio (página de metodologia) */
+.cartao-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+.cartao-topo h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0; padding: 0; line-height: 1.35; }
+.estado {
+  flex: none;
+  padding: .15rem .6rem;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.estado-ocorreu { background: #fdf0e6; color: #a2531d; }
+.estado-nao { background: #e9f5ec; color: #23703a; }
+.estado-resolver { background: #fde8e8; color: #b42318; }
+.estado-preencher { background: #fff6d6; color: #8a6a00; }
+.campo { margin: .6rem 0 0; font-size: .9rem; line-height: 1.5; color: var(--text); }
+.campo b { color: var(--muted); font-weight: 600; }
+.campo code { font-family: "JetBrains Mono", monospace; font-size: .8em; background: var(--soft);
+              padding: .05rem .3rem; border-radius: 4px; }
+.nos-dados { margin-top: .75rem; padding: .5rem .7rem; border-radius: 8px; background: var(--soft);
+             font-size: .85rem; line-height: 1.45; color: var(--text); }
+/* Dois cartões lado a lado, mesma altura (página de metodologia) */
+.par-cartoes { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: .75rem; }
+@media (max-width: 760px) { .par-cartoes { grid-template-columns: 1fr; } }
+.cartao-html {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+}
+.cartao-html h4 { margin: 0 0 .75rem; padding: 0; font-size: 1rem; font-weight: 700; color: var(--text); }
+.gqm { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1rem; font-size: .95rem; line-height: 1.45; }
+.gqm .rotulo { color: var(--muted); }
+.gqm b { color: var(--text); font-weight: 600; }
+.plano { margin: 0; padding-left: 1.1rem; font-size: .95rem; line-height: 1.5; color: var(--text); }
+.plano li { margin: 0 0 .35rem; }
+.plano li:last-child { margin-bottom: 0; }
 
 .nota { font-size: .85rem; line-height: 1.55; color: var(--muted); margin: 0; }
 .pending { font-size: .95rem; line-height: 1.55; color: var(--muted); }
