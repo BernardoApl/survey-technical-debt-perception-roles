@@ -23,11 +23,18 @@ importlib.reload(graficos)
 importlib.reload(componentes)
 
 from app import contexto  # noqa: E402
+from app import dados as dados_app  # noqa: E402
+from app import publico  # noqa: E402
 from app.dados import NOME_PERIODO, preparar  # noqa: E402
 from app.filtros import FILTROS, aplicar_filtros, filtros_ativos, rotular  # noqa: E402
 
 st.set_page_config(page_title="Dívida técnica por papel", page_icon="📊", layout="wide")
 st.html(f"<style>{(Path(__file__).parent / 'estilo.css').read_text(encoding='utf-8')}</style>")
+
+# No Cloud o CSV bruto não existe: usar somente a fotografia agregada publicada.
+if not dados_app.CSV_BRUTO.exists() and publico.ARQUIVO_PUBLICO.exists():
+    publico.renderizar(publico.ARQUIVO_PUBLICO)
+    st.stop()
 
 PAGINAS = Path(__file__).parent / "paginas"
 navegacao = st.navigation(
