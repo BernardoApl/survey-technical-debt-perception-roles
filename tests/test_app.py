@@ -6,6 +6,7 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 import app.dados as dados_app
+import app.publico as publico_app
 from app.filtros import FILTROS, aplicar_filtros, filtros_ativos, rotular
 from src import sintetico
 from src.clean import limpar
@@ -97,6 +98,7 @@ def test_csv_real_nao_mostra_aviso_de_sintetico(app_sintetico):
 def test_sem_csv_real_mostra_aviso(tmp_path, monkeypatch):
     monkeypatch.setattr(dados_app, "CSV_BRUTO", tmp_path / "nao_existe.csv")
     monkeypatch.setattr(dados_app, "CSV_SINTETICO", tmp_path / "sintetico.csv")
+    monkeypatch.setattr(publico_app, "ARQUIVO_PUBLICO", tmp_path / "nao_existe.json")
     teste = AppTest.from_file(APP, default_timeout=60)
     teste.run()
     assert any("SINTÉTICOS" in e.value for e in teste.error)
