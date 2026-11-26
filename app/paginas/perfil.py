@@ -110,7 +110,7 @@ with secao(3, "Técnicos e gestores", chave="perfil-grupos"):
         ]
         if n_g < META_GESTAO:
             linhas.append(f"<span style='color:{COR_VAGA_GESTAO};font-size:1.3em'>■</span> "
-                          f"Faltam **{META_GESTAO - n_g}** para a meta de {META_GESTAO} de gestão")
+                          f"Faltaram **{META_GESTAO - n_g}** para a meta de {META_GESTAO} de gestão")
         st.markdown("Cada quadrado é **uma resposta válida**.\n\n" + "  \n".join(linhas),
                     unsafe_allow_html=True)
         if n_g >= META_GESTAO:

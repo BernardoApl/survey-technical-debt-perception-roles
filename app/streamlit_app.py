@@ -62,10 +62,11 @@ with st.sidebar:
     st.subheader("Filtros por segmento")
     st.caption("Valem para Perfil, Itens Likert e Respostas abertas. "
                "Os testes das questões de pesquisa usam sempre a amostra completa.")
-    selecao = {}
+    selecao, opcoes_presentes = {}, {}
     for coluna, (rotulo, opcoes, _) in FILTROS.items():
         presentes = set(rotular(analise.dados, coluna).dropna())
         disponiveis = [o for o in opcoes if o in presentes]
+        opcoes_presentes[coluna] = disponiveis
         selecao[coluna] = st.multiselect(rotulo, disponiveis, default=disponiveis, key=f"f_{coluna}")
 
     pendentes = int(analise.dados["grupo_pendente"].sum())
@@ -77,8 +78,8 @@ contexto.guardar(
     contexto.Contexto(
         nome_analise=NOME_PERIODO,
         analise=analise,
-        filtrados=aplicar_filtros(analise.dados, selecao),
-        filtros_ativos=filtros_ativos(selecao),
+        filtrados=aplicar_filtros(analise.dados, selecao, opcoes_presentes),
+        filtros_ativos=filtros_ativos(selecao, opcoes_presentes),
         sintetico=e_sintetico,
     )
 )

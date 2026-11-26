@@ -71,6 +71,12 @@ def _fisher_exato(tabela):
 
 
 def _nominal(sub, item):
+    """D5/E8 × grupo, como na Seção 5.5 do protocolo.
+
+    Qui-quadrado de Pearson quando todas as frequências esperadas são pelo menos 5;
+    se alguma for menor, Fisher exato (Fisher-Freeman-Halton), com o qui-quadrado por
+    permutação como reserva quando a enumeração exata é grande demais.
+    """
     contagem = sub[item].value_counts()
     raras = set(contagem[contagem < 5].index)
     categorias = sub[item].map(lambda v: "Outras categorias (<5)" if v in raras else v)
@@ -86,8 +92,12 @@ def _nominal(sub, item):
     if tabela.shape[1] < 2 or (tabela.sum(axis=1) == 0).any():
         return {**info, "motivo": "É necessário ter dois grupos e ao menos duas categorias após o agrupamento."}
     valores = tabela.to_numpy()
-    chi2, _, _, _ = stats.chi2_contingency(valores, correction=False)
+    chi2, p_assintotico, _, esperadas = stats.chi2_contingency(valores, correction=False)
     v = math.sqrt(chi2 / valores.sum())  # tabela 2 x k
+    info["esperada_minima"] = float(esperadas.min())
+    if (esperadas >= 5).all():
+        return {**info, "teste": "qui-quadrado de Pearson", "estatistica": chi2,
+                "estatistica_nome": "qui-quadrado de Pearson", "p_bruto": p_assintotico, "efeito": v}
     if _contar_tabelas(valores.sum(axis=0).tolist(), int(valores[0].sum())) <= LIMITE_TABELAS:
         return {**info, "teste": "Fisher-Freeman-Halton exato", "estatistica": chi2,
                 "estatistica_nome": "qui-quadrado de Pearson (descritivo)",
@@ -194,7 +204,7 @@ def testes_rq(dados: pd.DataFrame) -> pd.DataFrame:
         sub = base.dropna(subset=cols)
         ns = {g: int(sub.grupo.eq(g).sum()) for g in GRUPOS}
         linha = {"id": i, "rq": rq, "variavel": x, "comparacao": y or "grupo",
-                 "teste": {"mann": "Mann-Whitney U", "nominal": "Fisher-Freeman-Halton exato",
+                 "teste": {"mann": "Mann-Whitney U", "nominal": "qui-quadrado ou Fisher (Seção 5.5)",
                            "wilcoxon": "Wilcoxon pareado", "spearman": "Spearman"}[tipo],
                  "n": len(sub), "n_tecnico": ns["técnico"], "n_gestao": ns["gestão"],
                  "n_sem_grupo": len(sub) - sum(ns.values()),
@@ -204,7 +214,8 @@ def testes_rq(dados: pd.DataFrame) -> pd.DataFrame:
                  "efeito_nome": {"mann": "r = Z/sqrt(N)", "nominal": "V de Cramér",
                                  "wilcoxon": "|Z|/sqrt(N)", "spearman": "rho"}[tipo],
                  "estatistica": np.nan, "estatistica_nome": "", "p_bruto": np.nan,
-                 "efeito": np.nan, "motivo": "", "proporcoes": "", "categorias_agrupadas": "", "desvio": ""}
+                 "efeito": np.nan, "motivo": "", "proporcoes": "", "categorias_agrupadas": "",
+                 "esperada_minima": np.nan, "desvio": ""}
         if tipo == "mann": resultado = _mann(sub, x)
         elif tipo == "nominal": resultado = _nominal(sub, x)
         elif tipo == "wilcoxon": resultado = _wilcoxon(sub)
