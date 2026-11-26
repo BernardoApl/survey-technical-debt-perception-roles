@@ -219,6 +219,26 @@ def test_divergencia_vai_para_consenso_e_depois_resolve():
     assert r2.consenso["justificativa"].tolist() == ["o texto cita as duas coisas"]
 
 
+def test_consenso_inativo_e_preservado_sem_contar_como_pendente():
+    df = validas(resposta(F1="Exemplo."))
+    cod_g, cod_b = {"R001_F1": "efeito_atraso"}, {"R001_F1": "efeito_esforco"}
+    antigo = _codificado(df, cod_g, cod_b).consenso.assign(
+        codigos_final="efeito_atraso", justificativa="decisão conjunta")
+    resultado = _codificado(df, cod_g, {}, antigo)
+    assert resultado.consenso.iloc[0].justificativa == "decisão conjunta"
+    assert resultado.finais.empty
+    assert resultado.pendencias["consenso"] == 0
+
+
+def test_consenso_final_nao_e_reutilizado_com_codigos_alterados():
+    df = validas(resposta(F1="Exemplo."))
+    cod_g, cod_b = {"R001_F1": "efeito_atraso"}, {"R001_F1": "efeito_esforco"}
+    antigo = _codificado(df, cod_g, cod_b).consenso.assign(
+        codigos_final="efeito_atraso", justificativa="decisão conjunta")
+    with pytest.raises(ErroPreenchimento, match="codificação alterados"):
+        _codificado(df, cod_g, {"R001_F1": "efeito_defeito"}, antigo)
+
+
 @pytest.mark.parametrize("final, justificativa, mensagem", [
     ("efeito_atraso", "", "sem justificativa"),
     ("inventado", "ok", "inventado"),

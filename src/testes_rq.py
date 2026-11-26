@@ -132,6 +132,53 @@ def _spearman(sub, x, y):
             "p_bruto": resultado.pvalue, "efeito": resultado.statistic}
 
 
+def testes_por_cenario(dados: pd.DataFrame, confiabilidade: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
+    """RQ3 exploratória por vinheta se alfa POS ou PRA for menor que 0,70.
+
+    Três comparações por cenário, fora dos 14 testes confirmatórios de Holm.
+    """
+    from src.config import META_ALFA
+
+    alfas = confiabilidade.set_index("construto")["alfa"].reindex(["POS", "PRA"])
+    baixos = [nome for nome, valor in alfas.items() if pd.notna(valor) and valor < META_ALFA]
+    indefinidos = [nome for nome, valor in alfas.items() if pd.isna(valor)]
+    colunas = ["cenario", "comparacao", "teste", "n", "n_tecnico", "n_gestao",
+               "n_sem_grupo", "estatistica_nome", "estatistica", "p_bruto", "efeito_nome",
+               "efeito", "motivo"]
+    linhas = []
+    if baixos:
+        for numero, (pos, pra) in enumerate((("E1", "E2"), ("E3", "E4"), ("E5", "E6")), 1):
+            for comparacao, tipo, cols in ((f"{pos} × grupo", "mann", [pos]),
+                                            (f"{pos} × {pra}", "pareado", [pos, pra]),
+                                            (f"{pos} − {pra} × grupo", "distancia", [pos, pra])):
+                base = dados[dados.grupo.isin(GRUPOS)] if tipo != "pareado" else dados
+                sub = base.dropna(subset=cols).copy()
+                ns = {g: int(sub.grupo.eq(g).sum()) for g in GRUPOS}
+                linha = {"cenario": numero, "comparacao": comparacao,
+                         "teste": "Wilcoxon pareado" if tipo == "pareado" else "Mann-Whitney U",
+                         "n": len(sub), "n_tecnico": ns["técnico"], "n_gestao": ns["gestão"],
+                         "n_sem_grupo": len(sub) - sum(ns.values()), "estatistica_nome": "",
+                         "estatistica": np.nan, "p_bruto": np.nan,
+                         "efeito_nome": "|Z|/sqrt(N)" if tipo == "pareado" else "r = Z/sqrt(N)",
+                         "efeito": np.nan, "motivo": ""}
+                if tipo == "pareado":
+                    resultado = _wilcoxon(sub.assign(POS=sub[pos], PRA=sub[pra]))
+                elif tipo == "distancia":
+                    sub["distancia_cenario"] = sub[pos] - sub[pra]
+                    resultado = _mann(sub, "distancia_cenario")
+                else:
+                    resultado = _mann(sub, pos)
+                linha.update(resultado)
+                linhas.append(linha)
+    return pd.DataFrame(linhas, columns=colunas), {
+        "executada": bool(baixos), "alfa_abaixo_meta": baixos,
+        "alfa_indefinido": indefinidos, "fora_do_holm": True,
+        "observacao": "Exploratória; p-valores sem correção de Holm." if baixos else
+                      ("Alfa não calculável; condição não pôde ser totalmente avaliada." if indefinidos
+                       else "Nenhum alfa de vinheta abaixo da meta."),
+    }
+
+
 def testes_rq(dados: pd.DataFrame) -> pd.DataFrame:
     """Retorna 14 linhas, incluindo testes impossíveis e seus motivos."""
     specs = [("RQ1", "NIV", None, "mann"), ("RQ2", "IMP", None, "mann"),
