@@ -75,6 +75,18 @@ def ler_reclassificacao(caminho: str | Path = CSV_RECLASSIFICACAO) -> pd.DataFra
             f"{caminho.name}: grupo inválido {invalidos}; use {GRUPOS_RECLASSIFICACAO} "
             "ou deixe vazio enquanto estiver pendente."
         )
+    # Toda decisão precisa de autor e justificativa (docs/decisoes-analise.md, item 2).
+    decidida = grupos != ""
+    sem_justificativa = decidida & (
+        tabela["decidido_por"].str.strip().eq("")
+        | tabela["justificativa"].str.strip().eq("")
+        | tabela["justificativa"].str.strip().str.startswith("pendente")
+    )
+    if sem_justificativa.any():
+        raise ValueError(
+            f"{caminho.name}: classificação sem decidido_por ou justificativa para "
+            f"{sorted(tabela.loc[sem_justificativa, 'texto_original'])}"
+        )
     return tabela.assign(grupo=grupos)
 
 

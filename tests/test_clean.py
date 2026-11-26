@@ -173,6 +173,26 @@ def test_reclassificacao_com_grupo_invalido(tmp_path):
         ler_reclassificacao(caminho)
 
 
+@pytest.mark.parametrize(
+    "decidido_por, justificativa",
+    [("", "decide prioridade"), ("gabriel", ""),
+     ("gabriel", "pendente: classificar como técnico, gestão ou fora")],
+)
+def test_reclassificacao_exige_autor_e_justificativa(tmp_path, decidido_por, justificativa):
+    caminho = tmp_path / "reclass.csv"
+    pd.DataFrame([{"texto_original": "CTO", "grupo": "gestão", "decidido_por": decidido_por,
+                   "justificativa": justificativa}]).to_csv(caminho, index=False)
+    with pytest.raises(ValueError, match="CTO"):
+        ler_reclassificacao(caminho)
+
+
+def test_reclassificacao_pendente_nao_exige_justificativa(tmp_path):
+    caminho = tmp_path / "reclass.csv"
+    pd.DataFrame([{"texto_original": "CTO", "grupo": "", "decidido_por": "",
+                   "justificativa": "pendente: classificar"}]).to_csv(caminho, index=False)
+    assert ler_reclassificacao(caminho)["grupo"].tolist() == [""]
+
+
 def test_reclassificacao_inexistente_vira_tabela_vazia(tmp_path):
     assert ler_reclassificacao(tmp_path / "nao_existe.csv").empty
 

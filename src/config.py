@@ -196,5 +196,22 @@ CSV_RECLASSIFICACAO = DIR_MANUAL / "reclassificacao_outro.csv"
 GRUPOS_RECLASSIFICACAO = ("técnico", "gestão", "fora")
 
 # ---------------------------------------------------------------------------
+# Respostas abertas (protocolo, Seções 5.7 e 6; docs/decisoes-analise.md, itens 3 e 4)
+# Os arquivos com texto do respondente ficam fora do Git (.gitignore).
+# ---------------------------------------------------------------------------
+ITENS_ABERTOS = ["F1", "F2"]
+RQ_ABERTAS = {"F1": "RQ2", "F2": "RQ3"}  # tabela da Seção 3 do protocolo
+REMOVIDO = "[removido]"
+CSV_ANONIMIZACAO = DIR_MANUAL / "revisao_anonimizacao.csv"
+CSV_LIVRO_CODIGOS = DIR_MANUAL / "livro_codigos.csv"  # versionado: não tem texto de respondente
+CODIFICADORES = ("gabriel", "bernardo")
+CSV_CONSENSO = DIR_MANUAL / "codificacao_consenso.csv"
+Z_95 = 1.96  # margem de erro: e = 1,96 * sqrt(p(1 - p) / n) (protocolo, Seção 2)
+
+
+def csv_codificacao(codificador: str) -> Path:
+    return DIR_MANUAL / f"codificacao_{codificador}.csv"
+
+# ---------------------------------------------------------------------------
 # Recodificação (texto -> número): responsabilidade da issue #3.
 # ---------------------------------------------------------------------------
