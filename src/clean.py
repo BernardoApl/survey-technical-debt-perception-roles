@@ -203,7 +203,11 @@ def salvar_limpeza(
     dir_saidas: Path = DIR_SAIDAS,
     dir_processado: Path = DIR_PROCESSADO,
 ) -> None:
-    """Grava log e resumo em outputs/ e as válidas (sem horário nem abertas) em data/processed/."""
+    """Grava log e resumo em outputs/ e as válidas em data/processed/.
+
+    O arquivo público sai sem horário, sem F1/F2 e com o cargo digitado em "Outro"
+    trocado por "Outro" (docs/decisoes-analise.md, item 9).
+    """
     dir_saidas.mkdir(parents=True, exist_ok=True)
     dir_processado.mkdir(parents=True, exist_ok=True)
     resultado.log.to_csv(dir_saidas / f"log_descartes{sufixo}.csv", index=False)
@@ -211,6 +215,10 @@ def salvar_limpeza(
         json.dumps(resultado.resumo, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     publicas = resultado.validas.drop(columns=["timestamp", "F1", "F2"])
+    # Cargo digitado em "Outro" é texto livre do respondente: não vai para o Git.
+    publicas["B2"] = publicas["B2"].where(
+        publicas["B2"].isin(PAPEIS_TECNICOS + PAPEIS_GESTAO) | publicas["B2"].isna(), "Outro"
+    )
     publicas.to_csv(dir_processado / f"respostas_validas{sufixo}.csv", index=False)
 
 

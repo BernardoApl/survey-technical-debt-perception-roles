@@ -26,11 +26,21 @@ from src.config import (
     NAO,
     NAO_SEI,
     NSA,
+    OPCOES_B3,
+    OPCOES_B4,
+    OPCOES_B5,
+    OPCOES_B6,
+    OPCOES_B7,
+    OPCOES_D5,
+    OPCOES_E7,
+    OPCOES_E8,
     PAPEIS_GESTAO,
     PAPEIS_TECNICOS,
     RAIZ,
     SEED,
     SIM,
+    TIPOS_C6,
+    VINHETAS,
 )
 
 # Cabeçalhos completos (o começo de cada um bate com src/config.py:COLUNAS).
@@ -71,72 +81,16 @@ CABECALHOS = [
 
 PAPEIS_OUTRO = ["Engenheiro de software", "Designer UX", "Analista de TI", "CTO"]
 
-B3 = ["Menos de 1 ano", "1 a 2 anos", "3 a 5 anos", "6 a 10 anos", "Mais de 10 anos"]
-B4 = ["3 a 11 meses", "1 a 2 anos", "3 a 5 anos", "Mais de 5 anos"]
-B5 = ["Até 49", "50 a 249", "250 a 999", "1.000 ou mais"]
-B6 = [
-    "Produto próprio",
-    "Consultoria / fábrica de software",
-    "Setor público",
-    "Startup",
-    "TI interna de empresa não-TI",
-    "Outro",
-]
-B7 = ["1 a 5 pessoas", "6 a 10 pessoas", "11 a 20 pessoas", "Mais de 20 pessoas"]
-C6 = [
-    "Código",
-    "Arquitetura",
-    "Testes",
-    "Documentação",
-    "Infraestrutura / build",
-    "Requisitos",
-]
-D5 = [
-    "Atraso de entregas",
-    "Defeitos em produção",
-    "Custo de manutenção",
-    "Desmotivação",
-    "Tempo para novos membros aprenderem o sistema",
-    "Nenhum efeito relevante",
-    NAO_SEI,
-]
-VINHETAS = {
-    1: [
-        "Seguir o padrão do código atual e entregar no prazo",
-        "Seguir o padrão atual e registrar a melhoria no backlog para depois",
-        "Melhorar só a parte que vai ser mexida, mesmo que leve um pouco mais",
-        "Reorganizar o módulo antes, mesmo que a entrega atrase",
-    ],
-    2: [
-        "Seguir para as próximas tarefas, mantendo a solução improvisada no código",
-        "Anotar no backlog, sem prazo, e seguir com o planejado",
-        "Agendar a correção para algumas sprints depois, convivendo com o risco",
-        "Refazer já na próxima sprint, atrasando outras tarefas",
-    ],
-    3: [
-        "Adiar e manter o foco nas funcionalidades até perto do fim do suporte",
-        "Registrar no backlog e decidir depois, sem mexer no planejado",
-        "Atualizar aos poucos, deixando as entregas mais lentas por vários meses",
-        "Parar duas semanas e atualizar agora, adiando funcionalidades",
-    ],
-}
-E7 = [
-    "Nunca",
-    "Raramente (algumas vezes por ano)",
-    "Às vezes (cerca de uma vez por mês)",
-    "Frequentemente (na maioria das sprints ou ciclos)",
-    "Sempre (há tempo reservado em todo ciclo)",
-    NAO_SEI,
-]
-E8 = [
-    "Devs",
-    "Tech lead",
-    "PO / PM",
-    "Gerente",
-    "Decisão conjunta",
-    "Ninguém formalmente",
-    NAO_SEI,
-]
+B3 = OPCOES_B3
+B4 = OPCOES_B4
+B5 = OPCOES_B5
+B6 = OPCOES_B6
+B7 = OPCOES_B7
+C6 = TIPOS_C6
+D5 = OPCOES_D5
+E7 = OPCOES_E7
+E8 = OPCOES_E8
+
 F1_EXEMPLOS = [
     "Uma mudança simples levou uma semana porque o módulo não tinha testes.",
     "O deploy quebrou duas vezes por causa de configuração duplicada.\nTivemos que voltar a versão.",
