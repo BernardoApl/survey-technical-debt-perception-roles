@@ -98,3 +98,16 @@ A especificação da Parte 2 pede margem de erro em cada RQ. Cada RQ mostra:
 - O CSV bruto e os arquivos com texto digitado pelo respondente (`reclassificacao_outro.csv`, `revisao_anonimizacao.csv` e as planilhas `codificacao_*.csv`) ficam fora do Git.
 - Os dados processados e o log de descartes públicos saem **sem o horário de envio**.
 - O texto aprovado de F1/F2 (`data/processed/respostas_abertas.csv`) sai **sem `resp_id`**, só com item, grupo de papel e códigos. Os códigos com `resp_id` (`codigos_abertas.csv`) saem sem texto. Assim nenhum arquivo público liga um relato ao perfil completo de quem respondeu (Seção 6: "só resultados agregados são publicados"). Consequência: no dashboard, os filtros de perfil valem para as frequências dos códigos, mas não para os exemplos de texto.
+
+### 10. Estatística descritiva e confiabilidade (#6)
+
+**Desvio:** não (operacionaliza as Seções 2, 3, 5.3 e 5.4). Código em `src/describe.py` e `src/reliability.py`; `python -m src.describe` grava as tabelas em `outputs/`.
+
+- **Recortes:** total, técnico e gestão. Papel "Outro" ainda sem grupo entra só no total.
+- **Frequências:** n = respostas que responderam ao item, com "Não sei" contado como uma opção. Ficam de fora A1 e B1 (todas as válidas responderam "Sim") e ATN (todas marcaram a opção pedida). Cargo digitado em "Outro" aparece só como "Outro".
+- **C6 (múltipla escolha):** cada opção é uma proporção separada. Nos 6 tipos, n exclui quem marcou só "Não sei" (o mesmo denominador do M3); em "Nenhum" e "Não sei", n são todas as respostas.
+- **% de concordância:** respostas 4 ou 5 sobre as que não são "Não sei avaliar" (tratado como ausente, Seção 3). Em C4 e D2 vale a resposta **como foi marcada**, isto é, a concordância com a frase do formulário, antes da inversão.
+- **Margem de erro:** fórmula da Seção 2 com o p observado, em toda proporção (item 6).
+- **Mediana e IQR:** NIV, IMP, POS, PRA, DIST e C5, total e por grupo. Quartis pelo método linear do pandas (tipo 7 de Hyndman e Fan).
+- **Alfa de Cronbach:** só com as respostas que têm todos os itens do construto (listwise), com C4 e D2 invertidos. IC 95% de Feldt, a mesma fórmula do pingouin (conferido em teste). A tabela traz n, quantas respostas ficaram de fora, se atinge a meta de 0,70, o alfa sem cada item e a correlação item-total corrigida. Calculado na amostra total, não por grupo.
+- **Validade convergente:** Spearman bilateral NIV × C5 e PRA × E7, com as respostas que têm os dois valores. Espera-se ρ positivo; os dois testes ficam fora da família de 14 do Holm.
