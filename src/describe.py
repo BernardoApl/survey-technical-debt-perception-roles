@@ -6,6 +6,7 @@ com escores) e devolve tabelas longas, uma linha por item × opção × recorte:
 - `frequencias`: cada opção de cada item fechado, com n, k, % e margem de erro.
   O perfil da amostra são as linhas de `grupo` e de B2 a B8.
 - `concordancia_likert`: % de respostas 4 ou 5 em C1–C4 e D1–D4, com margem.
+- `distribuicao_likert`: % de cada opção 1–5 desses itens, base das barras divergentes.
 - `resumo_escores`: mediana e IQR de NIV, IMP, POS, PRA, DIST e C5.
 - `nao_sei`: uso de "Não sei" e "Não sei avaliar" por item.
 
@@ -187,6 +188,25 @@ def concordancia_likert(dados: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(linhas, columns=["item", "invertido", "recorte", *COLUNAS_PROPORCAO])
 
 
+def distribuicao_likert(tabela_frequencias: pd.DataFrame) -> pd.DataFrame:
+    """% de cada opção 1–5 de C1–C4 e D1–D4 sobre quem avaliou (sem "Não sei avaliar").
+
+    É a base das barras divergentes: com o mesmo n da `concordancia_likert`,
+    a soma das opções 4 e 5 é igual ao % de concordância. `nao_sei` = quantas
+    respostas "Não sei avaliar" ficaram fora do n.
+    """
+    likert = tabela_frequencias[tabela_frequencias["item"].isin(ITENS_LIKERT)]
+    avaliadas = likert[likert["opcao"] != NSA].copy()
+    n = avaliadas.groupby(["item", "recorte"])["k"].transform("sum")
+    nao_sei_por = likert[likert["opcao"] == NSA].set_index(["item", "recorte"])["k"]
+    avaliadas["n"] = n
+    avaliadas["nao_sei"] = [int(nao_sei_por.get((i, r), 0))
+                            for i, r in zip(avaliadas["item"], avaliadas["recorte"])]
+    avaliadas["pct"] = (100 * avaliadas["k"] / avaliadas["n"]).where(avaliadas["n"] > 0)
+    return avaliadas[["item", "opcao", "ordem", "recorte", "n", "k", "pct", "nao_sei"]] \
+        .reset_index(drop=True)
+
+
 def resumo_escores(dados: pd.DataFrame) -> pd.DataFrame:
     """Mediana, quartis e IQR (Q3 − Q1) de cada escore, total e por grupo.
 
@@ -224,6 +244,7 @@ def tabelas(dados: pd.DataFrame) -> dict[str, pd.DataFrame]:
         "perfil": perfil(freq),
         "nao_sei": nao_sei(freq),
         "concordancia_likert": concordancia_likert(dados),
+        "distribuicao_likert": distribuicao_likert(freq),
         "escores_por_grupo": resumo_escores(dados),
         "confiabilidade": alfa,
         "confiabilidade_itens": alfa_itens,

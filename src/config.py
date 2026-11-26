@@ -80,6 +80,43 @@ COLUNAS = [
 ]
 CODIGOS = [codigo for codigo, _ in COLUNAS]
 
+# Enunciado completo de cada coluna, como no formulário oficial (script do Apps Script).
+# O começo de cada um bate com COLUNAS. Usado pelo dashboard e pelo gerador sintético.
+ENUNCIADOS = {
+    "timestamp": "Carimbo de data/hora",
+    "A1": "Li o termo de consentimento e aceito participar.",
+    "B1": "Você trabalha hoje em uma equipe de desenvolvimento de software, há pelo menos 3 meses?",
+    "B2": "Qual é o seu papel principal na equipe?",
+    "B3": "Há quanto tempo você trabalha com TI?",
+    "B4": "Há quanto tempo você está na equipe atual?",
+    "B5": "Quantos funcionários a empresa tem?",
+    "B6": "Em que tipo de empresa você trabalha?",
+    "B7": "Quantas pessoas há na sua equipe?",
+    "B8": "Antes desta pesquisa, quão familiarizado(a) você estava com o termo \"dívida técnica\"?",
+    "C1": "O sistema em que trabalho tem partes que precisam ser refeitas para facilitar a manutenção.",
+    "C2": "Atalhos técnicos para cumprir prazo são comuns na minha equipe.",
+    "C3": "Os testes automatizados do sistema são insuficientes para dar segurança ao fazer mudanças.",
+    "C4": "O sistema em que trabalho é fácil de modificar sem gerar novos problemas.",
+    "C5": "De 0 a 10, qual é o nível de dívida técnica do seu projeto principal?",
+    "C6": "Quais tipos de dívida técnica existem no seu projeto? (marque todas que se aplicam)",
+    "D1": "Nos últimos 3 meses, problemas no código ou na arquitetura atrasaram entregas da minha equipe.",
+    "D2": "Nos últimos 3 meses, problemas técnicos no sistema quase não causaram defeitos em produção.",
+    "D3": "Nos últimos 3 meses, fazer mudanças no sistema exigiu mais esforço do que deveria por causa de problemas técnicos acumulados.",
+    "ATN": "Para confirmar que está lendo, marque \"Discordo parcialmente\" nesta pergunta.",
+    "D4": "Nos últimos 3 meses, problemas técnicos no sistema deixaram pessoas da equipe desmotivadas ou frustradas.",
+    "D5": "Qual é o MAIOR efeito da dívida técnica na sua equipe?",
+    "E1": "No cenário 1, o que a equipe deveria fazer?",
+    "E2": "No cenário 1, o que normalmente acontece na sua equipe?",
+    "E3": "No cenário 2, depois de aplicar a correção, o que a equipe deveria fazer?",
+    "E4": "No cenário 2, o que normalmente acontece na sua equipe?",
+    "E5": "No cenário 3, o que a equipe deveria fazer?",
+    "E6": "No cenário 3, o que normalmente acontece na sua equipe?",
+    "E7": "Com que frequência sua equipe dedica tempo para reduzir dívida técnica?",
+    "E8": "Quem decide, na prática, quando reduzir a dívida técnica?",
+    "F1": "Descreva um exemplo recente em que a dívida técnica afetou seu trabalho.",
+    "F2": "O que mais dificulta a redução da dívida técnica na sua equipe?",
+}
+
 # ---------------------------------------------------------------------------
 # Textos do formulário usados por mais de uma etapa (#3 e #4).
 # Copiados do script do Apps Script que gerou o formulário oficial.

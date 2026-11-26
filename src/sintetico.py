@@ -22,6 +22,7 @@ import numpy as np
 
 from src.config import (
     CODIGOS,
+    ENUNCIADOS,
     LIKERT,
     NAO,
     NAO_SEI,
@@ -43,41 +44,8 @@ from src.config import (
     VINHETAS,
 )
 
-# Cabeçalhos completos (o começo de cada um bate com src/config.py:COLUNAS).
-CABECALHOS = [
-    "Carimbo de data/hora",
-    "Li o termo de consentimento e aceito participar.",
-    "Você trabalha hoje em uma equipe de desenvolvimento de software, há pelo menos 3 meses?",
-    "Qual é o seu papel principal na equipe?",
-    "Há quanto tempo você trabalha com TI?",
-    "Há quanto tempo você está na equipe atual?",
-    "Quantos funcionários a empresa tem?",
-    "Em que tipo de empresa você trabalha?",
-    "Quantas pessoas há na sua equipe?",
-    "Antes desta pesquisa, quão familiarizado(a) você estava com o termo \"dívida técnica\"?",
-    "O sistema em que trabalho tem partes que precisam ser refeitas para facilitar a manutenção.",
-    "Atalhos técnicos para cumprir prazo são comuns na minha equipe.",
-    "Os testes automatizados do sistema são insuficientes para dar segurança ao fazer mudanças.",
-    "O sistema em que trabalho é fácil de modificar sem gerar novos problemas.",
-    "De 0 a 10, qual é o nível de dívida técnica do seu projeto principal?",
-    "Quais tipos de dívida técnica existem no seu projeto? (marque todas que se aplicam)",
-    "Nos últimos 3 meses, problemas no código ou na arquitetura atrasaram entregas da minha equipe.",
-    "Nos últimos 3 meses, problemas técnicos no sistema quase não causaram defeitos em produção.",
-    "Nos últimos 3 meses, fazer mudanças no sistema exigiu mais esforço do que deveria por causa de problemas técnicos acumulados.",
-    "Para confirmar que está lendo, marque \"Discordo parcialmente\" nesta pergunta.",
-    "Nos últimos 3 meses, problemas técnicos no sistema deixaram pessoas da equipe desmotivadas ou frustradas.",
-    "Qual é o MAIOR efeito da dívida técnica na sua equipe?",
-    "No cenário 1, o que a equipe deveria fazer?",
-    "No cenário 1, o que normalmente acontece na sua equipe?",
-    "No cenário 2, depois de aplicar a correção, o que a equipe deveria fazer?",
-    "No cenário 2, o que normalmente acontece na sua equipe?",
-    "No cenário 3, o que a equipe deveria fazer?",
-    "No cenário 3, o que normalmente acontece na sua equipe?",
-    "Com que frequência sua equipe dedica tempo para reduzir dívida técnica?",
-    "Quem decide, na prática, quando reduzir a dívida técnica?",
-    "Descreva um exemplo recente em que a dívida técnica afetou seu trabalho.",
-    "O que mais dificulta a redução da dívida técnica na sua equipe?",
-]
+# Cabeçalhos completos, na ordem do CSV (src/config.py:ENUNCIADOS).
+CABECALHOS = list(ENUNCIADOS.values())
 
 PAPEIS_OUTRO = ["Engenheiro de software", "Designer UX", "Analista de TI", "CTO"]
 
