@@ -341,14 +341,10 @@ def consolidar(
 
     `finais` tem uma linha por texto já resolvido: os dois codificaram igual
     (origem "concordância") ou a dupla decidiu a divergência ("consenso").
-    O consenso atualizado lista só as divergências atuais, mantendo as decisões.
+    O consenso mantém também decisões de respostas que deixaram de ser ativas.
     """
     _falhar(CSV_CONSENSO.name, _repetidas(consenso))
-    decisoes = {
-        (r, i): (separar_codigos(f), _texto(j))
-        for r, i, f, j in zip(consenso["resp_id"], consenso["item"],
-                              consenso["codigos_final"], consenso["justificativa"])
-    }
+    decisoes = {(r.resp_id, r.item): r._asdict() for r in consenso.itertuples(index=False)}
     a, b = CODIFICADORES
     finais, linhas_consenso, decididas = [], [], []
     for linha in base.itertuples(index=False):
@@ -359,7 +355,16 @@ def consolidar(
         if cod_a == cod_b:
             finais.append({**chave, "codigos": cod_a, "origem": "concordância"})
             continue
-        final, justificativa = decisoes.get((linha.resp_id, linha.item), (frozenset(), ""))
+        anterior = decisoes.get((linha.resp_id, linha.item), {})
+        final = separar_codigos(anterior.get("codigos_final", ""))
+        justificativa = _texto(anterior.get("justificativa", ""))
+        if final and (separar_codigos(anterior.get(f"codigos_{a}", "")) != cod_a
+                      or separar_codigos(anterior.get(f"codigos_{b}", "")) != cod_b
+                      or _texto(anterior.get("texto", "")) != _texto(linha.texto)):
+            raise ErroPreenchimento(
+                f"{CSV_CONSENSO.name}: {linha.resp_id}/{linha.item} tem consenso anterior "
+                "com texto ou codificação alterados; revise a decisão manualmente antes de continuar."
+            )
         linhas_consenso.append({
             **chave, "texto": linha.texto, f"codigos_{a}": juntar_codigos(cod_a),
             f"codigos_{b}": juntar_codigos(cod_b), "codigos_final": juntar_codigos(final),
@@ -376,7 +381,10 @@ def consolidar(
     _falhar(CSV_CONSENSO.name, problemas)
 
     finais = pd.DataFrame(finais, columns=CHAVE + ["codigos", "origem"])
-    consenso = pd.DataFrame(linhas_consenso, columns=COLUNAS_CONSENSO)
+    atuais = {(r["resp_id"], r["item"]) for r in linhas_consenso}
+    anteriores = _sem_chaves(consenso, atuais)
+    consenso = pd.concat([anteriores, pd.DataFrame(linhas_consenso, columns=COLUNAS_CONSENSO)],
+                         ignore_index=True).sort_values(CHAVE, kind="mergesort").reset_index(drop=True)
     return finais, consenso
 
 
@@ -539,7 +547,11 @@ def processar(
         "textos": len(textos),
         "anonimizacao": len(textos) - len(aprovados),
         "codificacao": {n: int((~base[n].map(bool)).sum()) for n in CODIFICADORES},
-        "consenso": int(consenso["codigos_final"].map(_texto).eq("").sum()),
+        "consenso": sum(1 for linha in base.itertuples(index=False)
+                        if getattr(linha, CODIFICADORES[0]) and getattr(linha, CODIFICADORES[1])
+                        and getattr(linha, CODIFICADORES[0]) != getattr(linha, CODIFICADORES[1])
+                        and not any((r == linha.resp_id and i == linha.item)
+                                    for r, i in zip(finais["resp_id"], finais["item"]))),
         "resolvidos": len(finais),
     }
     return ResultadoAbertas(

@@ -200,7 +200,7 @@ def limpar(
         },
         "construtos_ausentes": {nome: int(ausentes[nome].sum()) for nome in ausentes},
         "outro_pendentes": [t for t in pendentes if t in set(validas["B2"])],
-        "validas_por_grupo": None,  # preenchido quando a recodificação (#3) entrar
+        "validas_por_grupo": None,  # preenchido pelo pipeline após a recodificação
     }
     return ResultadoLimpeza(validas.reset_index(drop=True), log, resumo, reclassificacao)
 
@@ -222,8 +222,11 @@ def salvar_limpeza(
     dir_saidas.mkdir(parents=True, exist_ok=True)
     dir_processado.mkdir(parents=True, exist_ok=True)
     resultado.log.to_csv(dir_saidas / f"log_descartes{sufixo}.csv", index=False)
+    # Cargos digitados são texto livre privado; o resumo público só traz a quantidade.
+    resumo_publico = dict(resultado.resumo)
+    resumo_publico["outro_pendentes"] = len(resultado.resumo["outro_pendentes"])
     (dir_saidas / f"resumo_amostra{sufixo}.json").write_text(
-        json.dumps(resultado.resumo, ensure_ascii=False, indent=2), encoding="utf-8"
+        json.dumps(resumo_publico, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     publicas = resultado.validas.drop(columns=["timestamp", "F1", "F2"])
     # Cargo digitado em "Outro" é texto livre do respondente: não vai para o Git.

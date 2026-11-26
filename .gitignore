@@ -4,6 +4,7 @@ data/raw/*
 data/manual/reclassificacao_outro.csv
 data/manual/revisao_anonimizacao.csv
 data/manual/codificacao_*.csv
+data/processed/
 
 # Saídas regeneradas pelo pipeline
 outputs/
