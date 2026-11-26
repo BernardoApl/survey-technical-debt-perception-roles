@@ -10,7 +10,13 @@
 
 - **O quê:** a análise principal inclui respostas de 13/11 a 25/11, em vez de encerrar em 22/11 como previsto no protocolo.
 - **Por quê:** o grupo decidiu prorrogar a coleta devido ao número insuficiente de respostas, antes de observar os resultados, conforme `docs/decisoes-analise.md`.
-- **Impacto:** respostas recebidas na prorrogação integram a análise principal. `outputs/desvios.json` registra os totais recebidos e válidos de 23/11 a 25/11; as frequências das abertas do período pré-registrado são mantidas separadamente.
+- **Impacto:** respostas recebidas na prorrogação integram a análise principal. `outputs/desvios.json` registra os totais recebidos e válidos de 23/11 a 25/11. Conforme a decisão 1, não há análise separada do período pré-registrado.
+
+## Escolha do teste de D5: conflito a resolver pelo grupo
+
+- **O quê:** a seção 5.5 do protocolo prevê qui-quadrado para D5 e Fisher quando houver frequência esperada menor que 5. A issue #7 pede Fisher para D5 após agrupar categorias raras, independentemente das frequências esperadas. A implementação usa Fisher em todos os casos viáveis.
+- **Por quê:** a implementação seguiu a instrução específica da issue; ela conflita com o protocolo, que é a fonte da verdade do projeto.
+- **Impacto:** quando todas as frequências esperadas forem pelo menos 5, o teste e seu p-valor podem diferir dos pré-registrados. O grupo deve resolver o conflito e documentar a decisão. Não se deve escolher ou alterar o critério com base nos p-valores observados.
 
 ## Amostra abaixo do mínimo e cota de gestão (condicionais)
 
