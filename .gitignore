@@ -3,6 +3,7 @@ data/raw/*
 !data/raw/.gitkeep
 data/manual/reclassificacao_outro.csv
 data/manual/revisao_anonimizacao.csv
+data/manual/codificacao_*.csv
 
 # Saídas regeneradas pelo pipeline
 outputs/
