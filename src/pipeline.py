@@ -30,7 +30,6 @@ def executar(caminho: Path = CSV_BRUTO, dir_manual: Path = DIR_MANUAL,
     bruto = carregar(caminho)
     reclass = ler_reclassificacao(dir_manual / CSV_RECLASSIFICACAO.name)
     limpeza = limpar(bruto, PERIODO_PRINCIPAL, reclass)
-    sensibilidade = limpar(bruto, PERIODO_PREREGISTRADO, reclass)
     dados, inconsistencias = recodificar(limpeza.validas, limpeza.reclassificacao)
     dados = calcular_escores(dados)
     resumo = limpeza.resumo
@@ -47,8 +46,7 @@ def executar(caminho: Path = CSV_BRUTO, dir_manual: Path = DIR_MANUAL,
     revisao, planilhas, consenso = abertas.ler_manuais(dir_manual)
     livro = abertas.ler_livro(dir_manual / CSV_LIVRO_CODIGOS.name)
     resultado_abertas = abertas.processar(limpeza.validas, livro, revisao, planilhas,
-                                          consenso, limpeza.reclassificacao,
-                                          sensibilidade.validas)
+                                          consenso, limpeza.reclassificacao)
     tabelas = describe.tabelas(dados)
     testes = testes_rq(dados)
     cenarios, estado_cenarios = testes_por_cenario(dados, tabelas["confiabilidade"])
