@@ -199,6 +199,10 @@ GRUPOS_RECLASSIFICACAO = ("técnico", "gestão", "fora")
 # Respostas abertas (protocolo, Seções 5.7 e 6; docs/decisoes-analise.md, itens 3 e 4)
 # Os arquivos com texto do respondente ficam fora do Git (.gitignore).
 # ---------------------------------------------------------------------------
+# Recortes de toda tabela descritiva. Papel "Outro" ainda sem grupo entra só no total.
+RECORTES = ("total", "técnico", "gestão")
+META_ALFA = 0.70  # protocolo, Seção 5.3
+
 ITENS_ABERTOS = ["F1", "F2"]
 RQ_ABERTAS = {"F1": "RQ2", "F2": "RQ3"}  # tabela da Seção 3 do protocolo
 REMOVIDO = "[removido]"

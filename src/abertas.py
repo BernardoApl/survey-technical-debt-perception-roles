@@ -42,14 +42,14 @@ from src.config import (
     ITENS_ABERTOS,
     PERIODO_PREREGISTRADO,
     PERIODO_PRINCIPAL,
+    RECORTES,
     RQ_ABERTAS,
-    Z_95,
     csv_codificacao,
 )
+from src.describe import margem_erro
 
 CHAVE = ["resp_id", "item"]
 PENDENTE, APROVADO = "pendente", "aprovado"
-RECORTES = ("total", "técnico", "gestão")
 
 COLUNAS_ANONIMIZACAO = [
     "resp_id", "item", "texto_original", "alertas",
@@ -420,13 +420,8 @@ def concordancia(base: pd.DataFrame, validos: dict[str, list[str]]) -> pd.DataFr
 
 
 # ---------------------------------------------------------------------------
-# 4. Frequências com margem de erro
+# 4. Frequências com margem de erro (margem_erro vem de src.describe)
 # ---------------------------------------------------------------------------
-def margem_erro(p: float, n: int) -> float:
-    """e = 1,96 * sqrt(p(1 - p) / n), em proporção (protocolo, Seção 2)."""
-    return Z_95 * math.sqrt(p * (1 - p) / n) if n else math.nan
-
-
 def frequencias(finais: pd.DataFrame, grupo_por_resp: pd.Series,
                 livro: pd.DataFrame) -> pd.DataFrame:
     """Frequência de cada código por item, no total e por grupo de papel.
