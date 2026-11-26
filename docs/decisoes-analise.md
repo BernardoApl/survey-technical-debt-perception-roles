@@ -51,14 +51,14 @@ Feita na #5, depois da limpeza e da anonimização. Dois integrantes codificam s
 
 Regras de execução (#5; passo a passo em `docs/procedimento-abertas.md`):
 
-- **O que entra:** F1 e F2 não vazios das respostas válidas da análise principal. A de sensibilidade usa um subconjunto delas.
+- **O que entra:** F1 e F2 não vazios das respostas válidas (período do item 1).
 - **Livro de códigos:** `data/manual/livro_codigos.csv` (versionado). A versão inicial parte das três categorias citadas na Seção 5.7 (pressão de prazo, falta de testes e falta de apoio da gestão, válidas para F1 e F2), dos tipos e efeitos já medidos em C6 e D5 e das causas e efeitos de DT de Rios et al. (2018), citados no protocolo.
 - **Rastreabilidade:** F1 responde à RQ2 e F2 à RQ3 (tabela da Seção 3). A tabela de frequências traz essa coluna. Depois da leitura das respostas (fase de familiarização de Braun e Clarke), a dupla ajusta o livro **antes** de codificar. Código novo que surgir durante a codificação entra no livro, e os dois revisam os textos já codificados.
 - **Vários códigos por texto:** permitido. `outro` marca tema sem código (descrito em `observacao`). `nao_codificavel` marca resposta sem conteúdo analisável.
 - **Independência:** cada codificador preenche só a sua planilha e não abre a do outro até os dois terminarem.
 - **Divergência:** texto em que os conjuntos de códigos não são idênticos. A dupla decide o conjunto final junto, com justificativa.
 - **Concordância:** % de concordância e kappa de Cohen por código, calculados antes do consenso. São só descritivos: não mudam nenhum critério.
-- **Frequência:** por item e código, k / n, em que n = textos do item com códigos finais no recorte (inclui `nao_codificavel`). Como um texto pode ter vários códigos, os % de um item não somam 100. Margem ±e pela fórmula da Seção 2 com o p observado (item 6). Total, técnico e gestão. Papel "Outro" ainda sem grupo entra só no total. Sai para a análise principal e para a de sensibilidade (item 1). A de sensibilidade usa os mesmos códigos, restritos às respostas válidas do período pré-registrado.
+- **Frequência:** por item e código, k / n, em que n = textos do item com códigos finais no recorte (inclui `nao_codificavel`). Como um texto pode ter vários códigos, os % de um item não somam 100. Margem ±e pela fórmula da Seção 2 com o p observado (item 6). Total, técnico e gestão. Papel "Outro" ainda sem grupo entra só no total.
 
 ## 5. Proteção de recortes pequenos no dashboard
 
@@ -111,3 +111,4 @@ A especificação da Parte 2 pede margem de erro em cada RQ. Cada RQ mostra:
 - **Mediana e IQR:** NIV, IMP, POS, PRA, DIST e C5, total e por grupo. Quartis pelo método linear do pandas (tipo 7 de Hyndman e Fan).
 - **Alfa de Cronbach:** só com as respostas que têm todos os itens do construto (listwise), com C4 e D2 invertidos. IC 95% de Feldt, a mesma fórmula do pingouin (conferido em teste). A tabela traz n, quantas respostas ficaram de fora, se atinge a meta de 0,70, o alfa sem cada item e a correlação item-total corrigida. Calculado na amostra total, não por grupo.
 - **Validade convergente:** Spearman bilateral NIV × C5 e PRA × E7, com as respostas que têm os dois valores. Espera-se ρ positivo; os dois testes ficam fora da família de 14 do Holm.
+- **Dashboard (#10):** a página de itens Likert segue os filtros da barra lateral. As barras divergentes mostram o % de cada opção sobre quem avaliou o item (sem "Não sei avaliar"), com o neutro no centro, e a soma de "Concordo" é o mesmo % de concordância da tabela. A página de confiabilidade usa sempre a amostra válida completa, porque a qualidade da medida não deve mudar com um recorte.

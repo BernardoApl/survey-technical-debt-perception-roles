@@ -218,3 +218,112 @@ def barras_perfil(categoria: pd.Series, opcoes: list[str], titulo: str,
         xaxis={"title": "Respostas", "range": [0, contagem.max() * 1.25]},
     )
     return figura
+
+
+# ---------------------------------------------------------------------------
+# Itens Likert: barras divergentes com o neutro no centro (#10)
+# ---------------------------------------------------------------------------
+# Discordo (vermelho) <-> concordo (azul), dois tons por lado e cinza no neutro.
+CORES_LIKERT = {
+    "Discordo totalmente": "#C23B3C",
+    "Discordo parcialmente": "#F2A3A1",
+    "Neutro": "#D4D4D8",
+    "Concordo parcialmente": "#84B9F3",
+    "Concordo totalmente": "#1B64BE",
+}
+ROTULOS_RECORTE = {"total": "Total", "técnico": "Técnico", "gestão": "Gestão"}
+
+
+def legenda_likert() -> str:
+    """Legenda em HTML, uma só por página (os gráficos não repetem a legenda)."""
+    return " &nbsp; ".join(
+        f"<span style='color:{cor};font-size:1.2em'>■</span> {opcao}"
+        for opcao, cor in CORES_LIKERT.items()
+    )
+
+
+def barras_divergentes(distribuicao: pd.DataFrame, concordancia: pd.DataFrame) -> go.Figure:
+    """Um item: uma barra por recorte (total, técnico, gestão), centrada no neutro.
+
+    `distribuicao` e `concordancia` são as linhas do item vindas de
+    src.describe.distribuicao_likert e concordancia_likert. Recortes sem
+    respostas não aparecem. À direita: % de concordância ± margem de erro.
+    """
+    conc = concordancia.set_index("recorte")
+    recortes = [r for r in ROTULOS_RECORTE if r in conc.index and conc.at[r, "n"] > 0]
+    pct = distribuicao.pivot_table(index="recorte", columns="opcao", values="pct",
+                                   aggfunc="first").reindex(recortes)
+    k = distribuicao.pivot_table(index="recorte", columns="opcao", values="k",
+                                 aggfunc="first").reindex(recortes)
+    rotulos = [f"{ROTULOS_RECORTE[r]} · n {int(conc.at[r, 'n'])}" for r in recortes]
+
+    figura = go.Figure()
+    # Lado esquerdo do centro para fora: metade do neutro, discordo parcialmente, totalmente.
+    lados = [("Neutro", -0.5), ("Discordo parcialmente", -1), ("Discordo totalmente", -1),
+             ("Neutro", 0.5), ("Concordo parcialmente", 1), ("Concordo totalmente", 1)]
+    for opcao, fator in lados:
+        valores = pct[opcao].fillna(0) if opcao in pct else pd.Series(0, index=recortes)
+        contagens = k[opcao].fillna(0) if opcao in k else pd.Series(0, index=recortes)
+        figura.add_bar(
+            y=rotulos, x=(fator * valores).tolist(), orientation="h", name=opcao,
+            marker={"color": CORES_LIKERT[opcao], "line": {"color": "#ffffff", "width": 1.5}},
+            showlegend=False,
+            customdata=[[fmt(v), int(c), int(conc.at[r, "n"])]
+                        for v, c, r in zip(valores, contagens, recortes)],
+            hovertemplate=(f"%{{y}}<br>{opcao}: %{{customdata[0]}}% "
+                           "(%{customdata[1]} de %{customdata[2]})<extra></extra>"),
+        )
+    for rotulo, r in zip(rotulos, recortes):
+        figura.add_annotation(
+            x=1, xref="paper", xanchor="left", y=rotulo, showarrow=False, align="left",
+            text=f"<b>{fmt(conc.at[r, 'pct'])}%</b> ± {fmt(conc.at[r, 'margem_pp'])}",
+            font={"color": COR_TEXTO, "size": 12},
+        )
+    figura.update_layout(
+        barmode="relative", bargap=0.35, height=60 + 38 * len(recortes),
+        margin={"l": 10, "r": 120, "t": 10, "b": 30},
+        xaxis={"range": [-100, 100], "tickvals": [-100, -50, 0, 50, 100],
+               "ticktext": ["100%", "50%", "0", "50%", "100%"], "zeroline": True,
+               "zerolinecolor": "#a1a1aa", "zerolinewidth": 1},
+        yaxis={"autorange": "reversed", "title": None},
+    )
+    return figura
+
+
+# ---------------------------------------------------------------------------
+# Confiabilidade: alfa com IC 95% e a meta do protocolo (#10)
+# ---------------------------------------------------------------------------
+COR_PONTO = "#2F3F5C"
+COR_META = "#C23B3C"
+
+
+def alfa_com_ic(confiabilidade: pd.DataFrame, meta: float, nomes: dict[str, str]) -> go.Figure:
+    """Um ponto por construto com o IC 95% e uma linha tracejada na meta."""
+    tabela = confiabilidade.dropna(subset=["alfa"])
+    rotulos = [nomes.get(c, c) for c in tabela["construto"]]
+    figura = go.Figure(go.Scatter(
+        x=tabela["alfa"], y=rotulos, mode="markers+text",
+        marker={"size": 11, "color": COR_PONTO, "line": {"color": "#ffffff", "width": 2}},
+        error_x={"type": "data", "symmetric": False, "thickness": 2, "width": 6, "color": COR_PONTO,
+                 "array": (tabela["ic95_superior"] - tabela["alfa"]).tolist(),
+                 "arrayminus": (tabela["alfa"] - tabela["ic95_inferior"]).tolist()},
+        text=[f"{fmt(a, 2)}" for a in tabela["alfa"]], textposition="top center",
+        textfont={"color": COR_TEXTO}, cliponaxis=False,
+        customdata=[[fmt(a, 2), fmt(i, 2), fmt(s, 2), int(n)] for a, i, s, n in
+                    zip(tabela["alfa"], tabela["ic95_inferior"], tabela["ic95_superior"],
+                        tabela["n"])],
+        hovertemplate=("%{y}<br>α = %{customdata[0]} "
+                       "(IC 95%: %{customdata[1]} a %{customdata[2]})<br>"
+                       "n = %{customdata[3]}<extra></extra>"),
+    ))
+    menor = min([meta - 0.2, *tabela["ic95_inferior"].dropna().tolist()])
+    figura.add_vline(x=meta, line={"color": COR_META, "dash": "dash", "width": 1.5})
+    figura.add_annotation(x=meta, y=1.02, yref="paper", showarrow=False, yanchor="bottom",
+                          text=f"meta {fmt(meta, 2)}", font={"color": COR_META, "size": 12})
+    figura.update_layout(
+        height=100 + 55 * len(rotulos), margin={"l": 10, "r": 20, "t": 50, "b": 30},
+        xaxis={"range": [menor - 0.05, 1.02], "title": "α de Cronbach (IC 95%)"},
+        yaxis={"autorange": "reversed", "title": None},
+        showlegend=False,
+    )
+    return figura

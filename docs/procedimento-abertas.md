@@ -66,7 +66,6 @@ Quando os dois terminarem, `codificacao_consenso.csv` lista os textos em que os 
 ## 6. Resultado
 
 - `outputs/frequencia_codigos.csv`: por item (com a RQ correspondente: F1 → RQ2, F2 → RQ3) e código, `n`, `k`, `pct` e `margem_pp` no total, entre técnicos e entre gestores.
-- `outputs/frequencia_codigos_sensibilidade.csv`: a mesma tabela, só com as respostas do período pré-registrado (13/11 a 22/11).
 - `data/processed/codigos_abertas.csv`: um código por linha (`resp_id`, `item`, `codigo`), para o dashboard.
 - `data/processed/respostas_abertas.csv`: textos aprovados com `item`, `grupo` e `codigos`, para os exemplos do dashboard. **Não tem `resp_id`**, para que um relato não possa ser cruzado com o perfil de quem respondeu (porte, tipo de empresa, experiência). Por isso os filtros do dashboard valem para as frequências, mas não para os exemplos.
 

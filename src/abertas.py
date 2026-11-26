@@ -40,7 +40,6 @@ from src.config import (
     DIR_PROCESSADO,
     DIR_SAIDAS,
     ITENS_ABERTOS,
-    PERIODO_PREREGISTRADO,
     PERIODO_PRINCIPAL,
     RECORTES,
     RQ_ABERTAS,
@@ -466,8 +465,6 @@ class ResultadoAbertas:
     concordancia: pd.DataFrame
     frequencias: pd.DataFrame
     pendencias: dict
-    # Período pré-registrado (protocolo, Seção 8; docs/decisoes-analise.md, item 1).
-    frequencias_sensibilidade: pd.DataFrame | None = None
 
     @property
     def codigos_longos(self) -> pd.DataFrame:
@@ -514,13 +511,8 @@ def processar(
     planilhas: dict[str, pd.DataFrame] | None = None,
     consenso: pd.DataFrame | None = None,
     reclassificacao: pd.DataFrame | None = None,
-    validas_sensibilidade: pd.DataFrame | None = None,
 ) -> ResultadoAbertas:
-    """Roda as etapas 1 a 4 sobre as respostas válidas de `src.clean.limpar`.
-
-    `validas` vem da análise principal. Se `validas_sensibilidade` (período
-    pré-registrado, um subconjunto) for dada, as frequências também saem só para ela.
-    """
+    """Roda as etapas 1 a 4 sobre as respostas válidas de `src.clean.limpar`."""
     from src.recode import grupo_papel
 
     revisao = _vazia(COLUNAS_ANONIMIZACAO) if revisao is None else revisao
@@ -550,10 +542,6 @@ def processar(
         "consenso": int(consenso["codigos_final"].map(_texto).eq("").sum()),
         "resolvidos": len(finais),
     }
-    sensibilidade = None
-    if validas_sensibilidade is not None:
-        no_periodo = finais[finais["resp_id"].isin(validas_sensibilidade["resp_id"])]
-        sensibilidade = frequencias(no_periodo, grupo_por_resp, livro)
     return ResultadoAbertas(
         revisao=revisao, planilhas=planilhas, consenso=consenso,
         textos_aprovados=aprovados,
@@ -562,7 +550,6 @@ def processar(
         concordancia=concordancia(base, validos),
         frequencias=frequencias(finais, grupo_por_resp, livro),
         pendencias=pendencias,
-        frequencias_sensibilidade=sensibilidade,
     )
 
 
@@ -602,10 +589,6 @@ def salvar_abertas(
     dir_saidas.mkdir(parents=True, exist_ok=True)
     resultado.concordancia.to_csv(dir_saidas / "concordancia_codificacao.csv", index=False)
     resultado.frequencias.to_csv(dir_saidas / "frequencia_codigos.csv", index=False)
-    if resultado.frequencias_sensibilidade is not None:
-        resultado.frequencias_sensibilidade.to_csv(
-            dir_saidas / "frequencia_codigos_sensibilidade.csv", index=False
-        )
     (dir_saidas / "pendencias_abertas.json").write_text(
         json.dumps(resultado.pendencias, ensure_ascii=False, indent=2), encoding="utf-8"
     )
@@ -617,7 +600,7 @@ def relatorio(pendencias: dict, outro_pendentes: list[str]) -> str:
     pronto = (not outro_pendentes and p["anonimizacao"] == 0 and p["consenso"] == 0
               and not any(p["codificacao"].values()))
     return "\n".join([
-        f"Respostas abertas (análise principal): {p['textos']} texto(s) de F1/F2",
+        f"Respostas abertas: {p['textos']} texto(s) de F1/F2",
         f"  papel \"Outro\" sem classificação: {len(outro_pendentes)}  -> "
         f"data/manual/{CSV_RECLASSIFICACAO.name}",
         f"  anonimização pendente:           {p['anonimizacao']}  -> "
@@ -634,12 +617,10 @@ if __name__ == "__main__":
     from src.clean import ler_reclassificacao, limpar, salvar_reclassificacao
     from src.load import carregar
 
-    dados, reclass = carregar(), ler_reclassificacao()
-    limpeza = limpar(dados, PERIODO_PRINCIPAL, reclass)
-    sensibilidade = limpar(dados, PERIODO_PREREGISTRADO, reclass)
+    limpeza = limpar(carregar(), PERIODO_PRINCIPAL, ler_reclassificacao())
     salvar_reclassificacao(limpeza.reclassificacao)
     revisao, planilhas, consenso = ler_manuais()
     resultado = processar(limpeza.validas, ler_livro(), revisao, planilhas, consenso,
-                          limpeza.reclassificacao, sensibilidade.validas)
+                          limpeza.reclassificacao)
     salvar_abertas(resultado)
     print(relatorio(resultado.pendencias, limpeza.resumo["outro_pendentes"]))

@@ -283,21 +283,6 @@ def test_frequencias_indicam_a_rq_do_protocolo():
     assert rq["F1"].tolist() == ["RQ2"] and rq["F2"].tolist() == ["RQ3"]
 
 
-def test_frequencias_do_periodo_preregistrado():
-    df = validas(resposta("2026-11-20 10:00", F2="a"), resposta("2026-11-24 10:00", F2="b"))
-    codigos = {"R001_F2": "pressao_prazo", "R002_F2": "cultura_equipe"}
-    r = _codificado(df, codigos, codigos)
-    sem_sensibilidade = r.frequencias_sensibilidade
-    r = processar(df, LIVRO, r.revisao, r.planilhas, r.consenso,
-                  validas_sensibilidade=df[df["resp_id"] == "R001"])
-    assert sem_sensibilidade is None
-    f = r.frequencias.set_index(["item", "codigo", "recorte"])
-    s = r.frequencias_sensibilidade.set_index(["item", "codigo", "recorte"])
-    assert f.loc[("F2", "cultura_equipe", "total"), "n"] == 2
-    assert s.loc[("F2", "pressao_prazo", "total"), ["n", "k"]].tolist() == [1, 1]
-    assert s.loc[("F2", "cultura_equipe", "total"), "k"] == 0
-
-
 def test_frequencias_usam_grupo_reclassificado():
     df = validas(resposta(F2="a", B2="CTO"))
     codigos = {"R001_F2": "pressao_prazo"}

@@ -12,6 +12,7 @@ from src.describe import (
     ITENS_FREQUENCIA,
     SEM_GRUPO,
     concordancia_likert,
+    distribuicao_likert,
     frequencias,
     margem_erro,
     nao_sei,
@@ -177,6 +178,30 @@ def test_concordancia_por_grupo():
     assert linha(c, item="C2", recorte="gestão")["pct"] == 0
 
 
+def test_distribuicao_likert_a_mao():
+    # C1: totalmente, parcialmente, neutro, discordo totalmente, não sei -> n = 4 (sem o "não sei")
+    d = dados(*(resposta(_hora(i), C1=v) for i, v in
+                enumerate([LIKERT[4], LIKERT[3], LIKERT[2], LIKERT[0], NSA])))
+    dist = distribuicao_likert(frequencias(d))
+    c1 = dist[(dist["item"] == "C1") & (dist["recorte"] == "total")].set_index("opcao")
+    assert c1["k"].tolist() == [1, 0, 1, 1, 1]
+    assert (c1["n"] == 4).all() and (c1["nao_sei"] == 1).all()
+    assert c1.loc[LIKERT[2], "pct"] == 25
+    assert NSA not in c1.index
+
+
+def test_distribuicao_bate_com_concordancia(sintetico_bruto):
+    _, d = sintetico_bruto
+    dist = distribuicao_likert(frequencias(d))
+    conc = concordancia_likert(d).set_index(["item", "recorte"])
+    soma = dist.groupby(["item", "recorte"])["pct"].sum()
+    assert soma.round(6).eq(100).all()
+    concordam = dist[dist["opcao"].isin(LIKERT[3:])].groupby(["item", "recorte"])
+    for chave, pct in concordam["pct"].sum().items():
+        assert pct == pytest.approx(conc.loc[chave, "pct"]), chave
+        assert concordam["n"].first()[chave] == conc.loc[chave, "n"], chave
+
+
 # ---------------------------------------------------------------------------
 # Escores
 # ---------------------------------------------------------------------------
@@ -262,7 +287,7 @@ def test_salvar_todas_as_tabelas(tmp_path, sintetico_bruto):
     _, d = sintetico_bruto
     geradas = tabelas(d)
     salvar_tabelas(geradas, tmp_path)
-    for nome in ("frequencias", "perfil", "nao_sei", "concordancia_likert",
+    for nome in ("frequencias", "perfil", "nao_sei", "concordancia_likert", "distribuicao_likert",
                  "escores_por_grupo", "confiabilidade", "confiabilidade_itens",
                  "validade_convergente"):
         assert len(pd.read_csv(tmp_path / f"{nome}.csv")) == len(geradas[nome]), nome

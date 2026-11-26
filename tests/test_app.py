@@ -8,7 +8,9 @@ from streamlit.testing.v1 import AppTest
 import app.dados as dados_app
 from app.filtros import FILTROS, aplicar_filtros, filtros_ativos, rotular
 from src import sintetico
+from src.clean import limpar
 from src.config import OPCOES_B3, OPCOES_B5
+from src.load import carregar
 
 APP = str(Path(__file__).resolve().parents[1] / "app" / "streamlit_app.py")
 PAGINAS = ["perfil", "likert", "rqs", "confiabilidade", "abertas", "metodologia"]
@@ -113,51 +115,165 @@ def test_trocar_filtro_muda_validas_filtradas(app_sintetico):
     assert not app_sintetico.exception
 
 
-def test_abertas_sem_codificacao_nao_mostra_texto(app_sintetico):
+@pytest.fixture
+def pastas_vazias(tmp_path, monkeypatch):
+    """data/processed/ e outputs/ temporários, para não ler arquivos locais."""
+    import src.config
+
+    processado, saidas = tmp_path / "processed", tmp_path / "outputs"
+    monkeypatch.setattr(src.config, "DIR_PROCESSADO", processado)
+    monkeypatch.setattr(src.config, "DIR_SAIDAS", saidas)
+    return processado, saidas
+
+
+def _codificar_tudo(tmp_path, pastas, original, anonimizado, aprovar=True):
+    """Roda o fluxo da #5 sobre o CSV sintético: aprova, codifica igual e salva."""
+    from src.abertas import ler_livro, processar, salvar_abertas
+
+    analise = dados_app.preparar_analise(dados_app.CSV_BRUTO)
+    limpeza = limpar(carregar(dados_app.CSV_BRUTO))
+    validas = limpeza.validas.copy()
+    alvo = validas["resp_id"].iloc[0]
+    validas.loc[validas["resp_id"] == alvo, "F1"] = original
+    livro = ler_livro()
+    r = processar(validas, livro)
+    revisao = r.revisao.copy()
+    if aprovar:
+        revisao["status"], revisao["revisado_por"] = "aprovado", "teste"
+        revisao.loc[revisao["texto_original"] == original, "texto_anonimizado"] = anonimizado
+    r = processar(validas, livro, revisao)
+    planilhas = {}
+    for nome, planilha in r.planilhas.items():
+        planilha = planilha.copy()
+        planilha["codigos"] = planilha["item"].map({"F1": "efeito_esforco;falta_testes",
+                                                   "F2": "pressao_prazo"})
+        planilhas[nome] = planilha
+    r = processar(validas, livro, revisao, planilhas, None, limpeza.reclassificacao)
+    processado, saidas = pastas
+    salvar_abertas(r, tmp_path / "manual", processado, saidas)
+    assert set(analise.dados["resp_id"]) == set(validas["resp_id"])
+    return r
+
+
+def test_abertas_sem_codificacao_nao_mostra_texto(app_sintetico, pastas_vazias):
     app_sintetico.switch_page("paginas/abertas.py").run()
+    assert not app_sintetico.exception, app_sintetico.exception
     assert any("Aguardando" in i.value for i in app_sintetico.info)
     textos = " ".join(m.value for m in app_sintetico.markdown)
     assert "monstro" not in textos and "Primeira linha" not in textos
 
 
-def test_abertas_com_codificacao_mostra_frequencias(tmp_path, monkeypatch, app_sintetico):
-    import src.config
+def test_abertas_com_pendencia_nao_mostra_nada(tmp_path, app_sintetico, pastas_vazias):
+    _codificar_tudo(tmp_path, pastas_vazias, "Texto da Fulana.", "", aprovar=False)
+    app_sintetico.switch_page("paginas/abertas.py").run()
+    assert any("pendência" in i.value for i in app_sintetico.info)
+    assert not app_sintetico.dataframe
 
-    analise = dados_app.preparar_analise(dados_app.CSV_BRUTO)
-    v1, v2, v3, v4 = analise.dados["resp_id"].iloc[:4]
-    descartada = analise.log.loc[analise.log["descartada"], "resp_id"].iloc[0]
-    manual = tmp_path / "data" / "manual"
-    manual.mkdir(parents=True)
-    pd.DataFrame(
-        {
-            "resp_id": [v1, v2, v3, v4, descartada],
-            "campo": ["F1", "F1", "F1", "F2", "F1"],
-            "texto_anonimizado": ["Texto A [removido].", "Texto B.", "", "Texto C.", "Descartada."],
-            "codigo_final": ["pressao_prazo;falta_testes", "pressao_prazo", "", "falta_apoio_gestao",
-                             "outro"],
-        }
-    ).to_csv(manual / "codificacao_abertas.csv", index=False)
-    monkeypatch.setattr(src.config, "DIR_MANUAL", manual)
+
+def test_abertas_mostra_frequencias_iguais_as_da_issue_5(tmp_path, app_sintetico, pastas_vazias):
+    original = "O sistema Atlas da Fulana caiu."
+    anonimizado = "O sistema [removido] da [removido] caiu."
+    r = _codificar_tudo(tmp_path, pastas_vazias, original, anonimizado)
 
     app_sintetico.switch_page("paginas/abertas.py").run()
     assert not app_sintetico.exception, app_sintetico.exception
     assert not any("Aguardando" in i.value for i in app_sintetico.info)
-    tabela = app_sintetico.dataframe[0].value
-    assert set(tabela["Código"]) == {"pressao_prazo", "falta_testes"}
+    exibida = app_sintetico.dataframe[0].value.set_index(["codigo", "recorte"])
+    saida = r.frequencias[r.frequencias["item"] == "F1"].set_index(["codigo", "recorte"])
+    for chave, linha in exibida.iterrows():
+        assert linha["k"] == saida.loc[chave, "k"], chave
+        assert linha["n"] == saida.loc[chave, "n"], chave
+        assert linha["pct"] == round(saida.loc[chave, "pct"], 1), chave
+        assert linha["margem_pp"] == round(saida.loc[chave, "margem_pp"], 1), chave
+    assert set(exibida.index.get_level_values("codigo")) == {"efeito_esforco", "falta_testes"}
     textos = " ".join(m.value for m in app_sintetico.markdown)
-    assert "Texto A [removido]." in textos
-    assert "Descartada." not in textos  # resposta descartada na limpeza não aparece
+    assert anonimizado in textos
+    assert "Atlas" not in textos and "Fulana" not in textos
 
 
-def test_abertas_com_codigo_pendente_nao_mostra_nada(tmp_path, monkeypatch, app_sintetico):
-    import src.config
-
-    manual = tmp_path / "manual"
-    manual.mkdir()
-    pd.DataFrame(
-        {"resp_id": ["R001"], "campo": ["F1"], "texto_anonimizado": ["Texto."], "codigo_final": [""]}
-    ).to_csv(manual / "codificacao_abertas.csv", index=False)
-    monkeypatch.setattr(src.config, "DIR_MANUAL", manual)
-
+def test_abertas_respeitam_filtro_de_grupo(tmp_path, app_sintetico, pastas_vazias):
+    _codificar_tudo(tmp_path, pastas_vazias, "Texto.", "Texto.")
+    app_sintetico.multiselect(key="f_grupo").set_value(["gestão"]).run()
     app_sintetico.switch_page("paginas/abertas.py").run()
-    assert any("sem código final" in i.value for i in app_sintetico.info)
+    assert not app_sintetico.exception, app_sintetico.exception
+    exibida = app_sintetico.dataframe[0].value
+    assert "técnico" not in set(exibida["recorte"])
+
+
+# ---------------------------------------------------------------------------
+# Itens Likert e confiabilidade (#10): o que aparece bate com as saídas da #6
+# ---------------------------------------------------------------------------
+def _analise():
+    return dados_app.preparar_analise(dados_app.CSV_BRUTO).dados
+
+
+def _conferir_likert(exibida, dados):
+    from src.describe import concordancia_likert, distribuicao_likert, frequencias
+
+    esperado = concordancia_likert(dados)
+    esperado = esperado[esperado["n"] > 0]
+    nao_sei = distribuicao_likert(frequencias(dados)).drop_duplicates(["item", "recorte"]) \
+        .set_index(["item", "recorte"])["nao_sei"]
+    rotulos = {"total": "Total", "técnico": "Técnico", "gestão": "Gestão"}
+    assert len(exibida) == len(esperado)
+    exibida = exibida.set_index(["item", "recorte"])
+    for _, linha in esperado.iterrows():
+        mostrada = exibida.loc[(linha["item"], rotulos[linha["recorte"]])]
+        assert mostrada["n"] == linha["n"]
+        assert mostrada["k"] == linha["k"]
+        assert mostrada["pct"] == round(linha["pct"], 1)
+        assert mostrada["margem_pp"] == round(linha["margem_pp"], 1)
+        assert mostrada["nao_sei"] == nao_sei[(linha["item"], linha["recorte"])]
+
+
+def test_likert_bate_com_a_issue_6(app_sintetico):
+    from src.config import ENUNCIADOS
+
+    app_sintetico.switch_page("paginas/likert.py").run()
+    assert not app_sintetico.exception, app_sintetico.exception
+    _conferir_likert(app_sintetico.dataframe[0].value, _analise())
+    assert len(app_sintetico.get("plotly_chart")) == 8  # um gráfico por item, C1–C4 e D1–D4
+    textos = " ".join(m.value for m in app_sintetico.markdown)
+    for item in ("C1", "C4", "D2", "D4"):
+        assert ENUNCIADOS[item] in textos
+    assert "C4 (R)" in textos and "D2 (R)" in textos
+
+
+def test_likert_respeita_filtros(app_sintetico):
+    app_sintetico.multiselect(key="f_grupo").set_value(["gestão"]).run()
+    app_sintetico.switch_page("paginas/likert.py").run()
+    assert not app_sintetico.exception, app_sintetico.exception
+    exibida = app_sintetico.dataframe[0].value
+    assert set(exibida["recorte"]) == {"Total", "Gestão"}
+    dados = _analise()
+    _conferir_likert(exibida, dados[dados["grupo"] == "gestão"])
+
+
+def test_confiabilidade_bate_com_a_issue_6(app_sintetico):
+    from src.reliability import confiabilidade, validade_convergente
+
+    app_sintetico.switch_page("paginas/confiabilidade.py").run()
+    assert not app_sintetico.exception, app_sintetico.exception
+    alfa, itens = confiabilidade(_analise())
+    validade = validade_convergente(_analise())
+
+    tab_alfa, tab_itens, tab_validade = (d.value for d in app_sintetico.dataframe)
+    assert tab_alfa["construto"].tolist() == alfa["construto"].tolist()
+    assert tab_alfa["n"].tolist() == alfa["n"].tolist()
+    assert tab_alfa["alfa"].tolist() == alfa["alfa"].round(3).tolist()
+    assert tab_itens["alfa_sem_item"].tolist() == itens["alfa_sem_item"].round(3).tolist()
+    assert tab_itens["r_item_total"].tolist() == itens["r_item_total"].round(3).tolist()
+    assert tab_validade["rho"].tolist() == validade["rho"].round(3).tolist()
+    assert tab_validade["n"].tolist() == validade["n"].tolist()
+    # a meta aparece na página e o gráfico do alfa é exibido
+    assert any("0,70" in h.proto.body for h in app_sintetico.get("html"))
+    assert len(app_sintetico.get("plotly_chart")) == 1
+
+
+def test_confiabilidade_ignora_filtros(app_sintetico):
+    app_sintetico.switch_page("paginas/confiabilidade.py").run()
+    antes = app_sintetico.dataframe[0].value["n"].tolist()
+    app_sintetico.multiselect(key="f_grupo").set_value(["gestão"]).run()
+    app_sintetico.switch_page("paginas/confiabilidade.py").run()
+    assert not app_sintetico.exception, app_sintetico.exception
+    assert app_sintetico.dataframe[0].value["n"].tolist() == antes
