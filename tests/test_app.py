@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -74,14 +75,17 @@ def app_sintetico(tmp_path, monkeypatch):
 def test_cada_pagina_abre_sem_erro(app_sintetico, pagina):
     app_sintetico.switch_page(f"paginas/{pagina}.py").run()
     assert not app_sintetico.exception, app_sintetico.exception
-    assert app_sintetico.title
+    assert any('class="top"' in h.proto.body for h in app_sintetico.get("html"))
 
 
 def test_perfil_mostra_contagens(app_sintetico):
-    rotulos = {m.label: m.value for m in app_sintetico.metric}
-    assert {"Respostas recebidas", "Descartadas", "Válidas"} <= set(rotulos)
-    recebidas = int(rotulos["Respostas recebidas"])
-    assert recebidas == int(rotulos["Descartadas"]) + int(rotulos["Válidas"])
+    rotulos = {m.label: int(m.value) for m in app_sintetico.metric}
+    assert {"Recebidas", "Válidas", "Técnicos", "Gestão"} <= set(rotulos)
+    legendas = " ".join(c.value for c in app_sintetico.caption)
+    descartadas = rotulos["Recebidas"] - rotulos["Válidas"]
+    assert f"{descartadas} descartadas" in legendas
+    assert rotulos["Técnicos"] + rotulos["Gestão"] <= rotulos["Válidas"]
+    assert "margem ±" in legendas
 
 
 def test_csv_real_nao_mostra_aviso_de_sintetico(app_sintetico):
@@ -97,10 +101,16 @@ def test_sem_csv_real_mostra_aviso(tmp_path, monkeypatch):
 
 
 def test_trocar_filtro_muda_validas_filtradas(app_sintetico):
-    antes = {m.label: m.value for m in app_sintetico.metric}["Válidas com os filtros"]
+    def cabecalho():
+        return next(h.proto.body for h in app_sintetico.get("html") if 'class="top"' in h.proto.body)
+
+    assert "Filtros:" not in cabecalho()
     app_sintetico.multiselect(key="f_grupo").set_value(["gestão"]).run()
-    depois = {m.label: m.value for m in app_sintetico.metric}["Válidas com os filtros"]
-    assert int(depois) < int(antes)
+    aviso = cabecalho()
+    assert "Filtros:" in aviso
+    filtradas, total = (int(x) for x in re.search(r"<b>(\d+)</b> de (\d+)", aviso).groups())
+    assert filtradas < total
+    assert not app_sintetico.exception
 
 
 def test_abertas_sem_codificacao_nao_mostra_texto(app_sintetico):

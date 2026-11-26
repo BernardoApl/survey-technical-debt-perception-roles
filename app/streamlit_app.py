@@ -11,13 +11,23 @@ RAIZ = Path(__file__).resolve().parents[1]
 if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
+import importlib  # noqa: E402
+
 import streamlit as st  # noqa: E402
+
+# Recarrega os módulos visuais a cada execução: o Streamlit às vezes mantém a versão
+# antiga de módulos importados pelas páginas, e o visual não atualiza sem reiniciar.
+from app import componentes, graficos  # noqa: E402
+
+importlib.reload(graficos)
+importlib.reload(componentes)
 
 from app import contexto  # noqa: E402
 from app.dados import NOME_PERIODO, preparar  # noqa: E402
 from app.filtros import FILTROS, aplicar_filtros, filtros_ativos, rotular  # noqa: E402
 
-st.set_page_config(page_title="Dívida técnica por papel", layout="wide")
+st.set_page_config(page_title="Dívida técnica por papel", page_icon="📊", layout="wide")
+st.html(f"<style>{(Path(__file__).parent / 'estilo.css').read_text(encoding='utf-8')}</style>")
 
 PAGINAS = Path(__file__).parent / "paginas"
 navegacao = st.navigation(

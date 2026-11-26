@@ -11,6 +11,7 @@ import plotly.express as px
 import streamlit as st
 
 from app import contexto
+from app.componentes import cabecalho_pagina, nota, secao
 from src.config import DIR_MANUAL
 
 CSV_CODIFICACAO = DIR_MANUAL / "codificacao_abertas.csv"
@@ -21,13 +22,17 @@ CAMPOS = {
 }
 
 ctx = contexto.obter()
-st.title("Respostas abertas")
-st.caption(f"{ctx.nome_analise} · Análise temática (Braun e Clarke, 2006), "
-           "codificada por dois integrantes (protocolo, Seção 5.7).")
+cabecalho_pagina(
+    "Respostas abertas",
+    "Temas que aparecem nas perguntas abertas, por grupo. Análise temática (Braun e Clarke, 2006) "
+    "codificada por dois integrantes; só aparece texto já anonimizado e aprovado.",
+    ctx,
+)
 
 
 def aguardando(motivo: str) -> None:
-    st.info(f"Aguardando a codificação das respostas abertas (issue #5): {motivo}.")
+    with secao(1, "Códigos temáticos", chave="abertas-aguardando"):
+        st.info(f"Aguardando a codificação das respostas abertas (issue #5): {motivo}.")
     st.stop()
 
 
@@ -43,7 +48,6 @@ sem_codigo = com_texto["codigo_final"].str.strip() == ""
 if sem_codigo.any():
     aguardando(f"{int(sem_codigo.sum())} resposta(s) ainda sem código final")
 
-contexto.aviso_filtros(ctx)
 grupos = ctx.filtrados[["resp_id", "grupo"]]
 codificadas = com_texto.merge(grupos, on="resp_id", how="inner")
 if codificadas.empty:
@@ -82,18 +86,19 @@ for codigo, parte in codigos.groupby("codigo"):
                    "%": round(100 * p, 1), "± margem (p.p.)": round(100 * margem(p, total), 1)})
 frequencias = pd.DataFrame(linhas).sort_values(["Grupo", "Respostas"], ascending=[True, False])
 
-st.caption(f"{total} pessoa(s) responderam a esta pergunta. O % é sobre quem respondeu, "
-           "por grupo; uma resposta pode ter mais de um código.")
-figura = px.bar(
-    frequencias[frequencias["Grupo"] != "total"], x="%", y="Código", color="Grupo",
-    barmode="group", orientation="h", error_x="± margem (p.p.)",
-)
-figura.update_layout(yaxis_title=None, height=150 + 40 * frequencias["Código"].nunique())
-st.plotly_chart(figura, width="stretch")
-st.dataframe(frequencias, hide_index=True, width="stretch")
+with secao(1, "Códigos temáticos", chave="abertas-codigos"):
+    nota(f"{total} pessoa(s) responderam a esta pergunta. O % é sobre quem respondeu em cada "
+         "grupo; uma resposta pode ter mais de um código. A barra de erro é a margem a 95%.")
+    figura = px.bar(
+        frequencias[frequencias["Grupo"] != "total"], x="%", y="Código", color="Grupo",
+        barmode="group", orientation="h", error_x="± margem (p.p.)",
+    )
+    figura.update_layout(yaxis_title=None, height=150 + 40 * frequencias["Código"].nunique())
+    st.plotly_chart(figura, width="stretch")
+    st.dataframe(frequencias, hide_index=True, width="stretch")
 
-st.subheader("Exemplos (texto anonimizado e aprovado)")
-escolhido = st.selectbox("Código", sorted(codigos["codigo"].unique()))
-exemplos = codigos[codigos["codigo"] == escolhido].drop_duplicates("resp_id")
-for _, linha in exemplos.iterrows():
-    st.markdown(f"> {linha['texto_anonimizado']}\n\n— grupo {linha['grupo']}")
+with secao(2, "Exemplos", chave="abertas-exemplos"):
+    escolhido = st.selectbox("Código", sorted(codigos["codigo"].unique()))
+    exemplos = codigos[codigos["codigo"] == escolhido].drop_duplicates("resp_id")
+    for _, linha in exemplos.iterrows():
+        st.markdown(f"> {linha['texto_anonimizado']}\n\n— grupo {linha['grupo']}")

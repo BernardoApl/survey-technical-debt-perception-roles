@@ -23,6 +23,10 @@ DIR_SAIDAS = RAIZ / "outputs"
 SEED = 2026
 FUSO = "America/Sao_Paulo"
 
+# Metas de amostra (protocolo, Seção 2)
+META_VALIDAS, MINIMO_VALIDAS = 60, 50
+META_GESTAO, MINIMO_GESTAO = 20, 15
+
 # Análise principal: coleta prorrogada até 25/11 (docs/decisoes-analise.md, item 1).
 PERIODO_PRINCIPAL = (
     pd.Timestamp("2026-11-13 00:00:00", tz=FUSO),

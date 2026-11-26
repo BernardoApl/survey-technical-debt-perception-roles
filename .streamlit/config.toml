@@ -1,0 +1,21 @@
+# Tema do dashboard: mesma identidade visual do Lab04 (fundo claro, Inter, tons neutros).
+# Cores dos grupos e das categorias ficam em app/graficos.py.
+
+[theme]
+base = "light"
+primaryColor = "#111113"
+backgroundColor = "#FAFAFA"
+secondaryBackgroundColor = "#F2F2F4"
+textColor = "#111113"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+codeFont = "JetBrains Mono:https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap"
+baseRadius = "10px"
+borderColor = "#E7E7EA"
+dataframeBorderColor = "#E7E7EA"
+dataframeHeaderBackgroundColor = "#F2F2F4"
+
+[theme.sidebar]
+backgroundColor = "#FFFFFF"
+
+[client]
+toolbarMode = "minimal"
