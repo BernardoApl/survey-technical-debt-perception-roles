@@ -31,7 +31,6 @@ from src.config import (
     NSA,
     PAPEIS_GESTAO,
     PAPEIS_TECNICOS,
-    PERIODO_PREREGISTRADO,
     PERIODO_PRINCIPAL,
 )
 
@@ -245,13 +244,10 @@ if __name__ == "__main__":
     dados = carregar()
     reclass = ler_reclassificacao()
     principal = limpar(dados, PERIODO_PRINCIPAL, reclass)
-    sensibilidade = limpar(dados, PERIODO_PREREGISTRADO, reclass)
     salvar_limpeza(principal)
-    salvar_limpeza(sensibilidade, sufixo="_sensibilidade")
     salvar_reclassificacao(principal.reclassificacao)
-    for nome, r in (("principal", principal), ("sensibilidade", sensibilidade)):
-        print(f"{nome}: {r.resumo['recebidas']} recebidas, "
-              f"{r.resumo['descartadas']} descartadas, {r.resumo['validas']} válidas")
+    print(f"{principal.resumo['recebidas']} recebidas, "
+          f"{principal.resumo['descartadas']} descartadas, {principal.resumo['validas']} válidas")
     if principal.resumo["outro_pendentes"]:
         print(f"{len(principal.resumo['outro_pendentes'])} papel(is) \"Outro\" pendente(s) em "
               f"{CSV_RECLASSIFICACAO.relative_to(CSV_RECLASSIFICACAO.parents[2])}")

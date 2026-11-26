@@ -11,14 +11,13 @@ Status: **Decidida** (escolha do grupo) ou **Proposta** (recomendação a confir
 **Status:** Decidida · **Desvio:** sim
 
 - **Análise principal:** respostas enviadas de **13/11/2026 00:00 a 25/11/2026 23:59:59** (America/Sao_Paulo).
-- **Análise de sensibilidade:** só o período pré-registrado, de 13/11 a 22/11/2026 23:59:59. O dashboard mostra as duas.
 - O formulário é fechado em 25/11/2026 às 23:59 e não é reaberto.
 
 **Motivo:** o número de respostas até 22/11 ficou abaixo do esperado, e a coleta foi prorrogada para tentar alcançar a meta.
 
 **Os resultados não foram olhados antes da decisão de prorrogar.** A decisão se baseou apenas na quantidade de respostas.
 
-**Impacto:** o protocolo (Seção 8) previa encerramento em 22/11 "sem prorrogação". A comparação entre a análise principal e a de sensibilidade mostra se alguma conclusão depende das respostas recebidas na prorrogação.
+**Impacto:** o protocolo (Seção 8) previa encerramento em 22/11 "sem prorrogação". Não há análise separada só com o período pré-registrado: todos os resultados usam as respostas até 25/11. O número de respostas recebidas na prorrogação (23/11 a 25/11) é registrado em `DEVIATIONS.md`.
 
 ## 2. Reclassificação dos papéis digitados em "Outro" (B2)
 

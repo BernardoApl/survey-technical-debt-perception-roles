@@ -23,12 +23,17 @@ DIR_SAIDAS = RAIZ / "outputs"
 SEED = 2026
 FUSO = "America/Sao_Paulo"
 
+# Metas de amostra (protocolo, Seção 2)
+META_VALIDAS, MINIMO_VALIDAS = 60, 50
+META_GESTAO, MINIMO_GESTAO = 20, 15
+
 # Análise principal: coleta prorrogada até 25/11 (docs/decisoes-analise.md, item 1).
 PERIODO_PRINCIPAL = (
     pd.Timestamp("2026-11-13 00:00:00", tz=FUSO),
     pd.Timestamp("2026-11-25 23:59:59", tz=FUSO),
 )
-# Análise de sensibilidade: período pré-registrado (protocolo, Seção 8).
+# Período pré-registrado (protocolo, Seção 8). Não é usado na análise: serve só para
+# registrar o desvio da prorrogação (respostas recebidas entre 23/11 e 25/11).
 PERIODO_PREREGISTRADO = (
     pd.Timestamp("2026-11-13 00:00:00", tz=FUSO),
     pd.Timestamp("2026-11-22 23:59:59", tz=FUSO),
