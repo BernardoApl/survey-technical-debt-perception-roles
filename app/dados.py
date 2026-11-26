@@ -59,3 +59,20 @@ def _preparar_com_cache(caminho: str, modificado_em: float) -> Analise:
 def preparar() -> tuple[Analise, bool]:
     caminho, e_sintetico = fonte_dos_dados()
     return _preparar_com_cache(str(caminho), caminho.stat().st_mtime), e_sintetico
+
+
+@st.cache_data(show_spinner="Calculando os desvios do protocolo...")
+def _estudo_com_cache(caminho: str, modificado_em: float) -> dict:
+    from src.pipeline import calcular
+
+    resultado = calcular(Path(caminho))
+    return {"desvios": resultado["desvios"],
+            "pendencias_abertas": resultado["abertas"].pendencias,
+            # Só a contagem: o texto digitado em "Outro" é do respondente e não aparece na tela.
+            "outro_pendentes": len(resultado["resumo"]["outro_pendentes"])}
+
+
+def preparar_estudo() -> dict:
+    """Desvios calculados pelo mesmo código do pipeline (src.pipeline.calcular), sem gravar nada."""
+    caminho, _ = fonte_dos_dados()
+    return _estudo_com_cache(str(caminho), caminho.stat().st_mtime)

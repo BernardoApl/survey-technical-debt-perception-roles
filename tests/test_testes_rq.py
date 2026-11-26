@@ -99,3 +99,32 @@ def test_pipeline_com_csv_sintetico(tmp_path):
     resultado = pd.read_csv(salvar_testes(preparar(arquivo), tmp_path))
     assert len(resultado) == 14
     assert (resultado.p_bruto.notna() | resultado.motivo.notna()).all()
+
+
+def _tabela_nominal(categorias_tecnico, categorias_gestao):
+    d = dados()
+    d = d.iloc[:0].reindex(range(len(categorias_tecnico) + len(categorias_gestao)))
+    d["grupo"] = ["técnico"] * len(categorias_tecnico) + ["gestão"] * len(categorias_gestao)
+    for col in ("NIV", "IMP", "POS", "PRA", "B3", "B5", "E7", "DIST"):
+        d[col] = 1.0
+    d["D5"] = categorias_tecnico + categorias_gestao
+    d["E8"] = d["D5"]
+    return d
+
+
+def test_d5_usa_qui_quadrado_quando_todas_as_esperadas_sao_ao_menos_5():
+    d = _tabela_nominal(["A"] * 20 + ["B"] * 20, ["A"] * 12 + ["B"] * 8)
+    linha = calcular(d).iloc[2]
+    assert linha.variavel == "D5"
+    assert linha.teste == "qui-quadrado de Pearson"
+    assert linha.esperada_minima >= 5
+    tabela = np.array([[20, 20], [12, 8]])
+    assert linha.p_bruto == pytest.approx(stats.chi2_contingency(tabela, correction=False).pvalue)
+
+
+def test_d5_usa_fisher_quando_alguma_esperada_e_menor_que_5():
+    d = _tabela_nominal(["A"] * 30 + ["B"] * 6, ["A"] * 2 + ["B"] * 6)
+    linha = calcular(d).iloc[2]
+    assert linha.teste == "Fisher-Freeman-Halton exato"
+    assert linha.esperada_minima < 5
+    assert linha.p_bruto == pytest.approx(stats.fisher_exact(np.array([[2, 6], [30, 6]])).pvalue)

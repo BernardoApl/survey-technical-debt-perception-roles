@@ -27,7 +27,18 @@ def rotular(dados: pd.DataFrame, coluna: str) -> pd.Series:
     return dados[coluna]
 
 
-def aplicar_filtros(dados: pd.DataFrame, selecao: dict[str, list[str]]) -> pd.DataFrame:
+def _ativo(coluna: str, escolhidas: list[str], disponiveis: dict[str, list[str]] | None) -> bool:
+    """Ativo quando a seleção deixa de fora alguma opção presente nos dados.
+
+    Sem `disponiveis`, compara com todas as opções do formulário. Opções que ninguém
+    marcou não contam: deixá-las fora do filtro não restringe nada.
+    """
+    opcoes = disponiveis[coluna] if disponiveis and coluna in disponiveis else FILTROS[coluna][1]
+    return bool(escolhidas) and not set(escolhidas) >= set(opcoes)
+
+
+def aplicar_filtros(dados: pd.DataFrame, selecao: dict[str, list[str]],
+                    disponiveis: dict[str, list[str]] | None = None) -> pd.DataFrame:
     """Mantém as linhas cujas categorias estão na seleção.
 
     Filtro com todas as opções (ou nenhuma selecionada) não restringe nada.
@@ -35,15 +46,11 @@ def aplicar_filtros(dados: pd.DataFrame, selecao: dict[str, list[str]]) -> pd.Da
     """
     manter = pd.Series(True, index=dados.index)
     for coluna, escolhidas in selecao.items():
-        _, opcoes, _ = FILTROS[coluna]
-        if not escolhidas or set(escolhidas) >= set(opcoes):
-            continue
-        manter &= rotular(dados, coluna).isin(escolhidas)
+        if _ativo(coluna, escolhidas, disponiveis):
+            manter &= rotular(dados, coluna).isin(escolhidas)
     return dados[manter]
 
 
-def filtros_ativos(selecao: dict[str, list[str]]) -> list[str]:
-    return [
-        FILTROS[c][0] for c, escolhidas in selecao.items()
-        if escolhidas and not set(escolhidas) >= set(FILTROS[c][1])
-    ]
+def filtros_ativos(selecao: dict[str, list[str]],
+                   disponiveis: dict[str, list[str]] | None = None) -> list[str]:
+    return [FILTROS[c][0] for c, escolhidas in selecao.items() if _ativo(c, escolhidas, disponiveis)]

@@ -112,3 +112,10 @@ A especificação da Parte 2 pede margem de erro em cada RQ. Cada RQ mostra:
 - **Alfa de Cronbach:** só com as respostas que têm todos os itens do construto (listwise), com C4 e D2 invertidos. IC 95% de Feldt, a mesma fórmula do pingouin (conferido em teste). A tabela traz n, quantas respostas ficaram de fora, se atinge a meta de 0,70, o alfa sem cada item e a correlação item-total corrigida. Calculado na amostra total, não por grupo.
 - **Validade convergente:** Spearman bilateral NIV × C5 e PRA × E7, com as respostas que têm os dois valores. Espera-se ρ positivo; os dois testes ficam fora da família de 14 do Holm.
 - **Dashboard (#10):** a página de itens Likert segue os filtros da barra lateral. As barras divergentes mostram o % de cada opção sobre quem avaliou o item (sem "Não sei avaliar"), com o neutro no centro, e a soma de "Concordo" é o mesmo % de concordância da tabela. A página de confiabilidade usa sempre a amostra válida completa, porque a qualidade da medida não deve mudar com um recorte.
+
+### 11. Teste de D5 e E8 (Seção 5.5)
+
+**Desvio:** não (aplica a Seção 5.5).
+
+- **Regra:** qui-quadrado de Pearson quando todas as frequências esperadas da tabela grupo × categoria são pelo menos 5; Fisher exato (Fisher-Freeman-Halton) quando alguma é menor. Antes, as categorias com menos de 5 respostas são agrupadas (Seção 5.2). A coluna `esperada_minima` de `testes_rq.csv` mostra qual caso valeu.
+- **Correção:** a primeira implementação (#7) usava Fisher em todos os casos, seguindo o texto da issue, que divergia do protocolo. O código foi corrigido para a regra pré-registrada depois da primeira execução com os dados reais. A escolha segue o protocolo, não os p-valores observados.
