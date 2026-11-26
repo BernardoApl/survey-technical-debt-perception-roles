@@ -110,7 +110,9 @@ def renderizar(caminho: Path = ARQUIVO_PUBLICO) -> None:
         for col, label, chave in zip(cols, ["Recebidas", "Válidas", "Técnicos", "Gestão"],
                                      ["recebidas", "validas", "tecnico", "gestao"]):
             col.metric(label, d["amostra"][chave])
-        st.caption(f"Descartadas: {d['amostra']['descartadas']}. Os dados são agregados da coleta real.")
+        st.caption(f"O arquivo recebido já havia sido filtrado e contém {d['amostra']['recebidas']} respostas. "
+                   f"Destas, {d['amostra']['descartadas']} foram descartadas pelas regras da análise. "
+                   "Os totais não representam o número original de respostas coletadas.")
         freq = pd.DataFrame(d["frequencias"])
         with st.expander("Ver distribuição de perfil"):
             item = st.selectbox("Perfil", ["B2", "B3", "B4", "B5", "B6", "B7", "B8"],
