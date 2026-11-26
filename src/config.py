@@ -28,7 +28,8 @@ PERIODO_PRINCIPAL = (
     pd.Timestamp("2026-11-13 00:00:00", tz=FUSO),
     pd.Timestamp("2026-11-25 23:59:59", tz=FUSO),
 )
-# Análise de sensibilidade: período pré-registrado (protocolo, Seção 8).
+# Período pré-registrado (protocolo, Seção 8). Não é usado na análise: serve só para
+# registrar o desvio da prorrogação (respostas recebidas entre 23/11 e 25/11).
 PERIODO_PREREGISTRADO = (
     pd.Timestamp("2026-11-13 00:00:00", tz=FUSO),
     pd.Timestamp("2026-11-22 23:59:59", tz=FUSO),
