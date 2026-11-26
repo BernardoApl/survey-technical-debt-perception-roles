@@ -22,11 +22,9 @@ from src.score import calcular_escores
 from src.testes_rq import testes_por_cenario, testes_rq
 
 
-def executar(caminho: Path = CSV_BRUTO, dir_manual: Path = DIR_MANUAL,
-             dir_processado: Path = DIR_PROCESSADO, dir_saidas: Path = DIR_SAIDAS) -> dict:
-    """Gera saídas a partir do CSV e das decisões humanas existentes."""
+def calcular(caminho: Path = CSV_BRUTO, dir_manual: Path = DIR_MANUAL) -> dict:
+    """Roda toda a análise sem gravar nada. Usado pelo pipeline e pelo dashboard."""
     caminho, dir_manual = Path(caminho), Path(dir_manual)
-    dir_processado, dir_saidas = Path(dir_processado), Path(dir_saidas)
     bruto = carregar(caminho)
     reclass = ler_reclassificacao(dir_manual / CSV_RECLASSIFICACAO.name)
     limpeza = limpar(bruto, PERIODO_PRINCIPAL, reclass)
@@ -73,6 +71,22 @@ def executar(caminho: Path = CSV_BRUTO, dir_manual: Path = DIR_MANUAL,
         "pendencias_abertas": resultado_abertas.pendencias,
         "testes_por_cenario": estado_cenarios,
     }
+
+    return {"bruto": bruto, "limpeza": limpeza, "dados": dados,
+            "inconsistencias": inconsistencias, "abertas": resultado_abertas,
+            "tabelas": tabelas, "testes": testes, "cenarios": cenarios,
+            "resumo": resumo, "desvios": desvios}
+
+
+def executar(caminho: Path = CSV_BRUTO, dir_manual: Path = DIR_MANUAL,
+             dir_processado: Path = DIR_PROCESSADO, dir_saidas: Path = DIR_SAIDAS) -> dict:
+    """Gera saídas a partir do CSV e das decisões humanas existentes."""
+    dir_manual = Path(dir_manual)
+    dir_processado, dir_saidas = Path(dir_processado), Path(dir_saidas)
+    r = calcular(caminho, dir_manual)
+    limpeza, resultado_abertas, tabelas = r["limpeza"], r["abertas"], r["tabelas"]
+    testes, cenarios, inconsistencias = r["testes"], r["cenarios"], r["inconsistencias"]
+    resumo, desvios = r["resumo"], r["desvios"]
 
     # Nenhum arquivo é gravado antes da validação das entradas e dos cálculos.
     salvar_limpeza(limpeza, dir_saidas=dir_saidas, dir_processado=dir_processado)
