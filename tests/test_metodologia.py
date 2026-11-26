@@ -183,3 +183,36 @@ def test_trechos_entre_crases_viram_code(pagina):
     corpo = _html(pagina)
     assert "<code>outputs/desvios.json</code>" in corpo
     assert "\x01" not in corpo
+
+
+# ---------------------------------------------------------------------------
+# Página "O que foi medido" e glossário
+# ---------------------------------------------------------------------------
+def test_glossario_cobre_todos_os_itens_dos_construtos():
+    from app.glossario import CONSTRUTOS, SIGLAS, ajuda
+    from src.config import ENUNCIADOS, ITENS_CONSTRUTO
+
+    assert set(CONSTRUTOS) == set(ITENS_CONSTRUTO)
+    for sigla, construto in CONSTRUTOS.items():
+        assert construto.itens == ITENS_CONSTRUTO[sigla]
+        assert all(item in ENUNCIADOS for item in construto.itens)
+    assert set(SIGLAS) == {"NIV", "IMP", "POS", "PRA", "DIST"}
+    assert ajuda("DIST").startswith("Distância")
+
+
+def test_pagina_instrumento_mostra_perguntas_e_cenarios(tmp_path, monkeypatch):
+    from app.glossario import CENARIOS
+    from src.config import ENUNCIADOS, ITENS_CONSTRUTO
+
+    csv = sintetico.salvar(tmp_path / "respostas.csv", n=40)
+    monkeypatch.setattr(dados_app, "CSV_BRUTO", csv)
+    teste = AppTest.from_file(APP, default_timeout=120)
+    teste.run()
+    teste.switch_page("paginas/instrumento.py").run()
+    assert not teste.exception, teste.exception
+    corpo = _html(teste).replace("&quot;", '"')
+    for itens in ITENS_CONSTRUTO.values():
+        for item in itens:
+            assert ENUNCIADOS[item] in corpo, item
+    for titulo, _, _ in CENARIOS:
+        assert titulo in corpo
